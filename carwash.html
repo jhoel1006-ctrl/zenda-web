@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carwash — Zenda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0C10; --surface:#12151B; --surface-2:#171B22; --line:#212630;
+    --cyan:#00D4FF; --cyan-dim:#00D4FF22; --gold:#FFD166; --text:#F2F5F8; --muted:#8A94A6;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:'Manrope', sans-serif; min-height:100vh;}
+  h1,h2,h3{font-family:'Space Grotesk', sans-serif; letter-spacing:-0.02em;}
+  a{color:inherit; text-decoration:none;}
+
+  nav{display:flex; align-items:center; justify-content:space-between; padding:22px 6vw; border-bottom:1px solid var(--line);}
+  .logo{display:flex; align-items:center; gap:10px; font-weight:800; font-size:20px;}
+  .logo img{width:24px; height:24px; border-radius:6px; object-fit:cover;}
+  .lang-toggle{display:flex; align-items:center; background:var(--surface); border:1px solid var(--line); border-radius:100px; padding:4px;}
+  .lang-toggle button{border:none; background:transparent; color:var(--muted); font-family:'Manrope', sans-serif; font-weight:700; font-size:12px; padding:6px 12px; border-radius:100px; cursor:pointer;}
+  .lang-toggle button.active{background:var(--cyan); color:#04121A;}
+
+  header{padding:5vw 6vw 2vw; max-width:1100px; margin:0 auto;}
+  .company-row{display:flex; align-items:center; gap:16px;}
+  .company-logo{width:60px; height:60px; border-radius:14px; object-fit:cover; background:var(--surface); border:1px solid var(--line);}
+  .company-logo-ph{width:60px; height:60px; border-radius:14px; background:var(--surface); border:1px solid var(--line); display:flex; align-items:center; justify-content:center;}
+  h1{font-size:clamp(24px,3.6vw,32px); font-weight:700;}
+  .sub{color:var(--muted); margin-top:4px; font-size:14px;}
+
+  main{max-width:1100px; margin:0 auto; padding:2vw 6vw 8vw;}
+
+  .cat-select{margin-top:10px;}
+  .cat-select h3{font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px;}
+  .cat-grid{display:flex; flex-wrap:wrap; gap:10px;}
+  .cat-btn{
+    padding:12px 18px; border-radius:12px; border:1px solid var(--line); background:var(--surface);
+    color:var(--text); font-family:'Manrope'; font-weight:700; font-size:14px; cursor:pointer;
+  }
+  .cat-btn.active{border-color:var(--cyan); background:var(--cyan-dim); color:var(--cyan);}
+
+  .services-grid{display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-top:28px;}
+  .svc-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:20px; overflow:hidden;
+    display:flex; flex-direction:column; transition:border-color .2s ease, transform .2s ease;
+  }
+  .svc-card:hover{border-color:#00D4FF55; transform:translateY(-3px);}
+  .svc-photo{
+    height:150px; background:linear-gradient(160deg, var(--surface-2), #0d1015);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .svc-body{padding:20px; display:flex; flex-direction:column; flex:1;}
+  .svc-body h3{font-size:17px; font-weight:700;}
+  .svc-sub{color:var(--cyan); font-size:12px; font-weight:700; margin-top:2px;}
+  .svc-time{color:var(--muted); font-size:12px; margin-top:8px; display:flex; align-items:center; gap:5px;}
+  .svc-desc{color:var(--muted); font-size:13px; line-height:1.55; margin-top:12px; flex:1;}
+  .svc-price{font-size:24px; font-weight:700; font-family:'Space Grotesk'; margin-top:16px;}
+  .svc-price span{font-size:12px; color:var(--muted); font-weight:400; font-family:'Manrope';}
+  .svc-btn{
+    margin-top:14px; background:var(--cyan); color:#04121A; font-weight:700; font-size:14px;
+    padding:13px; border-radius:10px; border:none; cursor:pointer; text-align:center;
+  }
+  .svc-unavailable{color:var(--muted); font-size:13px; margin-top:16px; text-align:center;}
+
+  .loading, .error, .empty{text-align:center; padding:80px 20px; color:var(--muted);}
+  .spinner{width:28px; height:28px; border:3px solid var(--line); border-top-color:var(--cyan); border-radius:50%; margin:0 auto 16px; animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* Modal de reserva */
+  .modal-overlay{display:none; position:fixed; inset:0; background:#000000cc; z-index:100; align-items:flex-end; justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal-box{background:var(--bg); width:100%; max-width:520px; max-height:90vh; overflow-y:auto; border-radius:24px 24px 0 0; padding:26px 24px 34px; border-top:1px solid var(--line);}
+  @media (min-width:560px){ .modal-overlay{align-items:center;} .modal-box{border-radius:24px; max-height:85vh;} }
+  .modal-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;}
+  .modal-header h2{font-size:19px;}
+  .modal-close{background:var(--surface); border:1px solid var(--line); border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text);}
+  .field-label{font-size:13px; font-weight:700; color:var(--muted); margin:16px 0 8px;}
+  .field-label:first-child{margin-top:0;}
+  .text-input{width:100%; background:var(--surface); border:1px solid var(--line); color:var(--text); padding:14px 16px; border-radius:10px; font-size:15px; font-family:'Manrope';}
+  .text-input:focus{outline:none; border-color:var(--cyan);}
+  select.text-input{appearance:none;}
+  .summary-box{background:var(--surface); border-radius:14px; padding:18px; margin-top:20px; text-align:center;}
+  .summary-box .lbl{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; font-weight:700;}
+  .summary-box .amt{font-size:28px; font-weight:700; font-family:'Space Grotesk'; margin-top:4px;}
+  .summary-box .det{font-size:13px; color:var(--muted); margin-top:4px;}
+  .btn-confirm{width:100%; background:var(--cyan); color:#04121A; font-weight:700; font-size:15px; padding:16px; border-radius:12px; margin-top:20px; border:none; cursor:pointer;}
+  .btn-confirm:disabled{opacity:0.5; cursor:not-allowed;}
+  .form-error{color:#FF3B30; font-size:13px; margin-top:10px; text-align:center;}
+  .confirm-screen{text-align:center; padding:20px 0;}
+  .confirm-icon{width:60px; height:60px; border-radius:50%; background:var(--cyan-dim); display:flex; align-items:center; justify-content:center; margin:0 auto 18px;}
+  .confirm-screen h2{font-size:22px; margin-bottom:8px;}
+  .confirm-screen p{color:var(--muted); font-size:14px; line-height:1.6;}
+  .deposit-box{background:var(--surface-2); border-radius:12px; padding:14px 16px; margin-top:16px; font-size:13px; color:var(--muted); line-height:1.5; text-align:left;}
+  .deposit-box b{color:var(--gold);}
+
+  .cal-box{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px;}
+  .cal-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .cal-header button{background:none; border:none; color:var(--cyan); font-size:20px; font-weight:700; cursor:pointer; padding:4px 10px;}
+  .cal-header span{font-weight:700; font-size:14px;}
+  .cal-dow{display:flex; margin-bottom:4px;}
+  .cal-dow div{flex:1; text-align:center; color:var(--muted); font-size:11px; font-weight:700;}
+  .cal-grid{display:flex; flex-wrap:wrap;}
+  .cal-day{width:14.28%; height:38px; display:flex; align-items:center; justify-content:center;}
+  .cal-day button{width:30px; height:30px; border-radius:50%; border:none; background:none; color:var(--text); font-size:13px; cursor:pointer; font-family:'Manrope';}
+  .cal-day button.occupied{color:#FF3B30; text-decoration:line-through; cursor:not-allowed;}
+  .cal-day button.past{color:#333; cursor:not-allowed;}
+  .cal-day button.selected{background:var(--cyan); color:#04121A; font-weight:700;}
+  .cal-legend{display:flex; gap:16px; justify-content:center; margin-top:10px; font-size:11px; color:var(--muted);}
+  .cal-legend span{display:flex; align-items:center; gap:5px;}
+  .legend-dot{width:8px; height:8px; border-radius:50%;}
+
+  @media (max-width:800px){
+    .services-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="/">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="1.6"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    ZENDA
+  </a>
+  <div class="lang-toggle">
+    <button id="btn-es" onclick="setLang('es')">ES</button>
+    <button id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+</nav>
+
+<header id="header" style="display:none;">
+  <div class="company-row">
+    <img id="company-logo" class="company-logo" style="display:none;">
+    <div id="company-logo-ph" class="company-logo-ph">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><path d="M2 16V9a2 2 0 0 1 2-2h11l4 4v5"/><line x1="2" y1="16" x2="22" y2="16"/><circle cx="7" cy="17.5" r="1.6" fill="#00D4FF"/><circle cx="17" cy="17.5" r="1.6" fill="#00D4FF"/></svg>
+    </div>
+    <div>
+      <h1 id="company-name">Carwash</h1>
+      <p class="sub" id="company-sub">Lavado y detailing móvil</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="loading" class="loading"><div class="spinner"></div><span id="loading-text">Cargando...</span></div>
+  <div id="error" class="error" style="display:none;"><span id="error-text">No se encontró este proveedor.</span></div>
+
+  <div id="content" style="display:none;">
+    <div class="cat-select">
+      <h3 id="cat-select-title">¿Qué tipo de vehículo tienes?</h3>
+      <div class="cat-grid" id="cat-grid"></div>
+    </div>
+
+    <div id="services-wrap" style="display:none;">
+      <div class="services-grid" id="services-grid"></div>
+    </div>
+    <div id="pick-category-msg" class="empty" style="display:none;">Elige tu categoría de vehículo para ver los precios.</div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box" id="modal-box"></div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://bwbytdevgxywwzglyiri.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_ePnGY7Nr8fXx02Zmhy-nuw_rMfJN1GO';
+
+  const T = {
+    es: {
+      loading: 'Cargando...',
+      error: 'No se encontró este proveedor.',
+      subHeader: 'Lavado y detailing móvil',
+      whatVehicle: '¿Qué tipo de vehículo tienes?',
+      pickCategoryMsg: 'Elige tu categoría de vehículo para ver los precios.',
+      notAvailable: 'No disponible para esta categoría',
+      fecha: 'Fecha',
+      hora: 'Hora',
+      elegirFechaPrimero: 'Elige una fecha primero',
+      buscandoHoras: 'Buscando horas disponibles...',
+      direccion: 'Dirección donde recibirás el servicio',
+      direccionPlaceholder: 'Calle, número, ciudad',
+      zip: 'Código postal',
+      tuNombre: 'Tu nombre',
+      nombreCompleto: 'Nombre completo',
+      tuTelefono: 'Tu teléfono',
+      tuCorreo: 'Tu correo',
+      confirmarReserva: 'Confirmar reserva',
+      confirmando: 'Confirmando...',
+      noHorasDisponibles: 'No hay horas disponibles ese día',
+      duraHint: (h) => `(dura ~${h}h)`,
+      errFecha: 'Elige una fecha',
+      errHora: 'Elige una hora disponible',
+      errDireccion: 'Ingresa la dirección',
+      errZip: 'Ingresa tu código postal',
+      errZipFuera: (zip, zonas) => `Este proveedor no cubre el código postal ${zip}. Zonas disponibles: ${zonas}`,
+      errNombre: 'Ingresa tu nombre',
+      errTelefono: 'Ingresa tu teléfono',
+      errCorreo: 'Ingresa un correo válido',
+      errGenerico: 'Ocurrió un error, intenta de nuevo.',
+      depositoTexto: (m) => `Depósito de <b>$${m}</b> para confirmar tu lugar. El resto se paga directo al proveedor.`,
+      pagarDeposito: 'Pagar depósito ahora',
+      reservaEnviadaTitulo: 'Reserva enviada',
+      reservaEnviadaTexto: 'El proveedor confirmará tu reserva pronto.',
+      cerrar: 'Cerrar',
+      seleccionado: 'Seleccionado',
+      ocupado: 'Sin cupo',
+      dow: ['D','L','M','M','J','V','S'],
+      locale: 'es-US',
+    },
+    en: {
+      loading: 'Loading...',
+      error: 'This provider could not be found.',
+      subHeader: 'Mobile wash & detailing',
+      whatVehicle: 'What type of vehicle do you have?',
+      pickCategoryMsg: 'Choose your vehicle category to see prices.',
+      notAvailable: 'Not available for this category',
+      fecha: 'Date',
+      hora: 'Time',
+      elegirFechaPrimero: 'Choose a date first',
+      buscandoHoras: 'Looking for available times...',
+      direccion: 'Address where you\'ll receive the service',
+      direccionPlaceholder: 'Street, number, city',
+      zip: 'Zip code',
+      tuNombre: 'Your name',
+      nombreCompleto: 'Full name',
+      tuTelefono: 'Your phone',
+      tuCorreo: 'Your email',
+      confirmarReserva: 'Confirm booking',
+      confirmando: 'Confirming...',
+      noHorasDisponibles: 'No available times that day',
+      duraHint: (h) => `(~${h}h long)`,
+      errFecha: 'Choose a date',
+      errHora: 'Choose an available time',
+      errDireccion: 'Enter the address',
+      errZip: 'Enter your zip code',
+      errZipFuera: (zip, zonas) => `This provider doesn't cover zip code ${zip}. Available areas: ${zonas}`,
+      errNombre: 'Enter your name',
+      errTelefono: 'Enter your phone number',
+      errCorreo: 'Enter a valid email',
+      errGenerico: 'Something went wrong, please try again.',
+      depositoTexto: (m) => `A <b>$${m}</b> deposit is required to confirm your spot. The rest is paid directly to the provider.`,
+      pagarDeposito: 'Pay deposit now',
+      reservaEnviadaTitulo: 'Booking sent',
+      reservaEnviadaTexto: 'The provider will confirm your booking soon.',
+      cerrar: 'Close',
+      seleccionado: 'Selected',
+      ocupado: 'Fully booked',
+      dow: ['S','M','T','W','T','F','S'],
+      locale: 'en-US',
+    }
+  };
+
+  let currentLang = localStorage.getItem('zenda_lang') || 'es';
+  function t(key, ...args){
+    const val = T[currentLang][key];
+    return typeof val === 'function' ? val(...args) : val;
+  }
+
+  function aplicarTraduccionesEstaticas(){
+    document.getElementById('btn-es').classList.toggle('active', currentLang === 'es');
+    document.getElementById('btn-en').classList.toggle('active', currentLang === 'en');
+    document.documentElement.lang = currentLang;
+    document.getElementById('loading-text').textContent = t('loading');
+    document.getElementById('error-text').textContent = t('error');
+    if(!COMPANY) document.getElementById('company-sub').textContent = t('subHeader');
+    document.getElementById('cat-select-title').textContent = t('whatVehicle');
+    document.getElementById('pick-category-msg').textContent = t('pickCategoryMsg');
+  }
+
+  function setLang(lang){
+    currentLang = lang;
+    localStorage.setItem('zenda_lang', lang);
+    aplicarTraduccionesEstaticas();
+    // Si ya hay categoría elegida, volvemos a pintar las tarjetas de servicio en el nuevo idioma
+    if(CATEGORIA_ELEGIDA) renderServicios();
+    // Si el modal de reserva está abierto, lo regeneramos también
+    if(document.getElementById('modal-overlay').classList.contains('open') && SERVICIO_ELEGIDO){
+      renderModalReserva();
+      renderCalendarCW();
+      if(bookingState.fecha) actualizarHorasDisponibles();
+    }
+  }
+
+  const CATEGORIAS = [
+    { key: 'sedan', label: 'Sedan & Compact' },
+    { key: 'suv2', label: 'SUV 2 Rows' },
+    { key: 'suv3', label: 'SUV 3 Rows / Large' },
+    { key: 'pickup', label: 'Pickup & Truck' },
+  ];
+
+  const ICONOS_SERVICIO = {
+    standard: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="1.6"><path d="M12 2l1.8 5.4L19 9l-5.2 1.6L12 16l-1.8-5.4L5 9l5.2-1.6L12 2Z"/></svg>`,
+    advanced: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="1.6"><path d="M4 20l4-4M8 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Z"/><path d="M14 6l4-4M18 2l2 2-4 4"/></svg>`,
+    full: `<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="1.6"><path d="M12 3c2 2 3 4 3 6a3 3 0 0 1-6 0c0-2 1-4 3-6Z"/><path d="M5 21c0-3 3-5 7-5s7 2 7 5"/></svg>`,
+  };
+
+  function getSlugFromPath(){
+    const parts = window.location.pathname.split('/').filter(Boolean);
+    const idx = parts.indexOf('carwash');
+    return idx >= 0 ? parts[idx + 1] : null;
+  }
+
+  async function api(path){
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    return res.json();
+  }
+
+  async function cachedApi(path, ttlSeconds){
+    const cacheKey = 'zenda_cache_' + path;
+    try{
+      const cached = sessionStorage.getItem(cacheKey);
+      if(cached){
+        const parsed = JSON.parse(cached);
+        if((Date.now() - parsed.ts) / 1000 < ttlSeconds) return parsed.data;
+      }
+    }catch(e){}
+    const data = await api(path);
+    try{ sessionStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data })); }catch(e){}
+    return data;
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+
+  let CATEGORIA_ELEGIDA = null;
+  let SERVICIOS = [];
+  let COMPANY = null;
+
+  async function cargar(){
+    aplicarTraduccionesEstaticas();
+    const slug = getSlugFromPath();
+    if(!slug){
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+      return;
+    }
+    try{
+      const services = await cachedApi(`services?companies.carwash_slug=eq.${encodeURIComponent(slug)}&type=eq.carwash&activo=eq.true&select=*,companies!inner(id,carwash_business_name,carwash_logo_url,carwash_description,carwash_deposit_type,carwash_deposit_value,carwash_stripe_link)`, 120);
+      if(!services || !services.length){
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error').style.display = 'block';
+        return;
+      }
+      SERVICIOS = services;
+      COMPANY = services[0].companies;
+
+      document.title = `${COMPANY.carwash_business_name} — Carwash | Zenda`;
+      document.getElementById('company-name').textContent = COMPANY.carwash_business_name;
+      document.getElementById('company-sub').textContent = COMPANY.carwash_description || t('subHeader');
+      if(COMPANY.carwash_logo_url){
+        const img = document.getElementById('company-logo');
+        img.src = COMPANY.carwash_logo_url;
+        img.style.display = 'block';
+        document.getElementById('company-logo-ph').style.display = 'none';
+      }
+
+      // Categorías activas: unión de las categorías activas en cualquiera de los 3 servicios
+      const categoriasActivas = new Set();
+      SERVICIOS.forEach(s => (s.atributos_json?.categorias_activas || []).forEach(c => categoriasActivas.add(c)));
+
+      const catGrid = document.getElementById('cat-grid');
+      catGrid.innerHTML = CATEGORIAS.filter(c => categoriasActivas.has(c.key)).map(c =>
+        `<button class="cat-btn" id="cat-${c.key}" onclick="elegirCategoria('${c.key}')">${c.label}</button>`
+      ).join('');
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('header').style.display = 'block';
+      document.getElementById('content').style.display = 'block';
+      document.getElementById('pick-category-msg').style.display = 'block';
+    }catch(e){
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+    }
+  }
+  cargar();
+
+  function elegirCategoria(key){
+    CATEGORIA_ELEGIDA = key;
+    CATEGORIAS.forEach(c => {
+      const btn = document.getElementById('cat-' + c.key);
+      if(btn) btn.classList.toggle('active', c.key === key);
+    });
+    document.getElementById('pick-category-msg').style.display = 'none';
+    document.getElementById('services-wrap').style.display = 'block';
+    renderServicios();
+  }
+
+  function renderServicios(){
+    const grid = document.getElementById('services-grid');
+    const orden = ['standard', 'advanced', 'full'];
+    const ordenados = orden.map(key => SERVICIOS.find(s => s.atributos_json?.servicio_key === key)).filter(Boolean);
+
+    grid.innerHTML = ordenados.map(s => {
+      const a = s.atributos_json || {};
+      const precio = a.categorias_precio ? a.categorias_precio[CATEGORIA_ELEGIDA] : null;
+      const icono = ICONOS_SERVICIO[a.servicio_key] || ICONOS_SERVICIO.standard;
+      return `
+        <div class="svc-card">
+          <div class="svc-photo">${icono}</div>
+          <div class="svc-body">
+            <h3>${escapeHtml(s.nombre)}</h3>
+            <div class="svc-sub">${escapeHtml(a.subtitulo || '')}</div>
+            <div class="svc-time">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8A94A6" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+              ${escapeHtml(a.tiempo_estimado || '')}
+            </div>
+            <div class="svc-desc">${escapeHtml(a.descripcion || '')}</div>
+            ${precio ? `
+              <div class="svc-price">$${precio}</div>
+              <button class="svc-btn" onclick="abrirReserva('${s.id}')">Book Now</button>
+            ` : `<div class="svc-unavailable">${t('notAvailable')}</div>`}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ================= FLUJO DE RESERVA =================
+  const bookingState = { nombre:'', telefono:'', email:'', direccion:'', zip:'', fecha:null, hora:'', mes: new Date() };
+  let SERVICIO_ELEGIDO = null;
+  let OCUPADOS_MES = [];
+
+  function abrirReserva(serviceId){
+    SERVICIO_ELEGIDO = SERVICIOS.find(s => s.id === serviceId);
+    bookingState.fecha = null;
+    bookingState.hora = '';
+    bookingState.mes = new Date();
+    document.getElementById('modal-overlay').classList.add('open');
+    renderModalReserva();
+    cargarOcupadosMesCW().then(renderCalendarCW);
+  }
+
+  function cerrarModal(){
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+
+  // Trae todo lo ocupado (reservas + bloqueos) de CUALQUIERA de los 3 servicios
+  // de este proveedor en el mes visible, para poder marcar en el calendario
+  // qué días ya no tienen ningún hueco disponible.
+  async function cargarOcupadosMesCW(){
+    const idsServicios = SERVICIOS.map(sv => sv.id);
+    const idsStr = `(${idsServicios.join(',')})`;
+    const year = bookingState.mes.getFullYear();
+    const month = bookingState.mes.getMonth();
+    const inicioMes = new Date(year, month, 1).toISOString();
+    const finMes = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
+    try{
+      const data = await api(`service_bookings?service_id=in.${idsStr}&status=in.(Pendiente,Confirmado,Bloqueado)&fecha_hora=gte.${inicioMes}&fecha_hora=lte.${finMes}&select=fecha_hora,duracion_min`);
+      OCUPADOS_MES = (data || []).map(d => {
+        const inicio = new Date(d.fecha_hora);
+        const dur = d.duracion_min || 60;
+        return { inicio, fin: new Date(inicio.getTime() + dur * 60000) };
+      });
+    }catch(e){
+      OCUPADOS_MES = [];
+    }
+  }
+
+  // Un día se marca "sin cupo" solo si NO cabe ningún horario de inicio
+  // (8am-6pm) para la duración del servicio elegido, considerando lo ocupado.
+  function diaSinCupoCW(dia){
+    const duracionMin = (SERVICIO_ELEGIDO.atributos_json?.duracion_min) || 90;
+    for(let h = 8; h < 18; h++){
+      for(const min of [0, 30]){
+        const inicioProp = new Date(dia); inicioProp.setHours(h, min, 0, 0);
+        const finProp = new Date(inicioProp.getTime() + duracionMin * 60000);
+        if(finProp.getHours() > 18 || (finProp.getHours() === 18 && finProp.getMinutes() > 0)) continue;
+        const seEncima = OCUPADOS_MES.some(o => inicioProp < o.fin && finProp > o.inicio);
+        if(!seEncima) return false;
+      }
+    }
+    return true;
+  }
+
+  function generarDiasCalendarioCW(mesBase){
+    const year = mesBase.getFullYear();
+    const month = mesBase.getMonth();
+    const primerDia = new Date(year, month, 1);
+    const ultimoDia = new Date(year, month + 1, 0);
+    const dias = [];
+    for(let i = 0; i < primerDia.getDay(); i++) dias.push(null);
+    for(let d = 1; d <= ultimoDia.getDate(); d++) dias.push(new Date(year, month, d));
+    return dias;
+  }
+
+  function renderCalendarCW(){
+    const dias = generarDiasCalendarioCW(bookingState.mes);
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const mesNombre = bookingState.mes.toLocaleDateString(t('locale'), {month:'long', year:'numeric'});
+    let html = `
+      <div class="cal-header">
+        <button onclick="cambiarMesCW(-1)">‹</button>
+        <span>${mesNombre}</span>
+        <button onclick="cambiarMesCW(1)">›</button>
+      </div>
+      <div class="cal-dow">${t('dow').map(d=>`<div>${d}</div>`).join('')}</div>
+      <div class="cal-grid">
+    `;
+    dias.forEach(dia => {
+      if(!dia){ html += `<div class="cal-day"></div>`; return; }
+      const esPasado = dia < hoy;
+      const sinCupo = !esPasado && diaSinCupoCW(dia);
+      const seleccionado = bookingState.fecha && dia.toDateString() === bookingState.fecha.toDateString();
+      const cls = seleccionado ? 'selected' : (esPasado ? 'past' : (sinCupo ? 'occupied' : ''));
+      const disabled = (esPasado || sinCupo) ? 'disabled' : '';
+      html += `<div class="cal-day"><button class="${cls}" ${disabled} onclick="elegirFechaCW(${dia.getTime()})">${dia.getDate()}</button></div>`;
+    });
+    html += `</div>`;
+    document.getElementById('cal-box').innerHTML = html;
+  }
+
+  function cambiarMesCW(delta){
+    bookingState.mes = new Date(bookingState.mes.getFullYear(), bookingState.mes.getMonth() + delta, 1);
+    cargarOcupadosMesCW().then(renderCalendarCW);
+  }
+
+  function elegirFechaCW(timestamp){
+    bookingState.fecha = new Date(timestamp);
+    bookingState.hora = '';
+    renderCalendarCW();
+    actualizarHorasDisponibles();
+  }
+
+  function renderModalReserva(){
+    const s = SERVICIO_ELEGIDO;
+    const a = s.atributos_json || {};
+    const precio = a.categorias_precio ? a.categorias_precio[CATEGORIA_ELEGIDA] : 0;
+    const catLabel = CATEGORIAS.find(c => c.key === CATEGORIA_ELEGIDA)?.label || '';
+
+    const box = document.getElementById('modal-box');
+    box.innerHTML = `
+      <div class="modal-header">
+        <h2>${escapeHtml(s.nombre)}</h2>
+        <button class="modal-close" onclick="cerrarModal()">✕</button>
+      </div>
+
+      <div class="field-label">${t('fecha')}</div>
+      <div class="cal-box" id="cal-box"></div>
+      <div class="cal-legend">
+        <span><span class="legend-dot" style="background:#00D4FF"></span>${t('seleccionado')}</span>
+        <span><span class="legend-dot" style="background:#FF3B30"></span>${t('ocupado')}</span>
+      </div>
+
+      <div class="field-label">${t('hora')} <span id="hora-hint" style="color:var(--muted); font-weight:400; text-transform:none; letter-spacing:normal;"></span></div>
+      <select class="text-input" id="input-hora" disabled><option>${t('elegirFechaPrimero')}</option></select>
+
+      <div class="field-label">${t('direccion')}</div>
+      <input class="text-input" id="input-direccion" placeholder="${t('direccionPlaceholder')}">
+
+      <div class="field-label">${t('zip')}</div>
+      <input class="text-input" id="input-zip" placeholder="Ej: 33165" inputmode="numeric">
+
+      <div class="field-label">${t('tuNombre')}</div>
+      <input class="text-input" id="input-nombre" placeholder="${t('nombreCompleto')}">
+
+      <div class="field-label">${t('tuTelefono')}</div>
+      <input class="text-input" id="input-telefono" placeholder="Ej: +1 786 555 1234">
+
+      <div class="field-label">${t('tuCorreo')}</div>
+      <input class="text-input" id="input-email" type="email" placeholder="tucorreo@ejemplo.com">
+
+      <div class="summary-box">
+        <div class="lbl">${escapeHtml(catLabel)}</div>
+        <div class="amt">$${precio}</div>
+        <div class="det">${escapeHtml(s.nombre)} · ${escapeHtml(a.tiempo_estimado || '')}</div>
+      </div>
+
+      <div id="form-error"></div>
+      <button class="btn-confirm" id="btn-confirmar" onclick="confirmarReservaCW()">${t('confirmarReserva')}</button>
+    `;
+  }
+
+  // Calcula, a partir de OCUPADOS_MES (ya cargado para el mes visible),
+  // qué horas de inicio caben completas sin encimarse con nada ese día,
+  // según la duración del servicio elegido.
+  async function actualizarHorasDisponibles(){
+    const horaSelect = document.getElementById('input-hora');
+    const hint = document.getElementById('hora-hint');
+    if(!bookingState.fecha){ return; }
+
+    horaSelect.disabled = true;
+    horaSelect.innerHTML = `<option>${t('buscandoHoras')}</option>`;
+
+    const duracionMin = (SERVICIO_ELEGIDO.atributos_json?.duracion_min) || 90;
+    const dia = bookingState.fecha;
+
+    const HORA_APERTURA = 8;
+    const HORA_CIERRE = 18; // último trabajo debe TERMINAR antes de esta hora
+    const opciones = [];
+    for(let h = HORA_APERTURA; h < HORA_CIERRE; h++){
+      for(const min of [0, 30]){
+        const inicioProp = new Date(dia); inicioProp.setHours(h, min, 0, 0);
+        const finProp = new Date(inicioProp.getTime() + duracionMin * 60000);
+        if(finProp.getHours() > HORA_CIERRE || (finProp.getHours() === HORA_CIERRE && finProp.getMinutes() > 0)) continue;
+
+        const seEncima = OCUPADOS_MES.some(o => inicioProp < o.fin && finProp > o.inicio);
+        if(!seEncima){
+          const label = inicioProp.toLocaleTimeString(t('locale'), {hour:'numeric', minute:'2-digit'});
+          opciones.push({ value: `${h}:${min===0?'00':min}`, label });
+        }
+      }
+    }
+
+    if(opciones.length === 0){
+      horaSelect.innerHTML = `<option value="">${t('noHorasDisponibles')}</option>`;
+      horaSelect.disabled = true;
+      hint.textContent = '';
+    }else{
+      horaSelect.innerHTML = opciones.map(o => `<option value="${o.value}">${o.label}</option>`).join('');
+      horaSelect.disabled = false;
+      hint.textContent = t('duraHint', Math.round(duracionMin/60*10)/10);
+    }
+  }
+
+  async function confirmarReservaCW(){
+    bookingState.hora = document.getElementById('input-hora').value;
+    bookingState.direccion = document.getElementById('input-direccion').value.trim();
+    bookingState.zip = document.getElementById('input-zip').value.trim();
+    bookingState.nombre = document.getElementById('input-nombre').value.trim();
+    bookingState.telefono = document.getElementById('input-telefono').value.trim();
+    bookingState.email = document.getElementById('input-email').value.trim();
+
+    const errBox = document.getElementById('form-error');
+    errBox.innerHTML = '';
+    if(!bookingState.fecha){ errBox.innerHTML = `<div class="form-error">${t('errFecha')}</div>`; return; }
+    if(!bookingState.hora){ errBox.innerHTML = `<div class="form-error">${t('errHora')}</div>`; return; }
+    if(!bookingState.direccion){ errBox.innerHTML = `<div class="form-error">${t('errDireccion')}</div>`; return; }
+    if(!bookingState.zip){ errBox.innerHTML = `<div class="form-error">${t('errZip')}</div>`; return; }
+
+    if(COMPANY.carwash_zipcodes && COMPANY.carwash_zipcodes.trim()){
+      const zipsPermitidos = COMPANY.carwash_zipcodes.split(',').map(z => z.trim()).filter(Boolean);
+      if(zipsPermitidos.length > 0 && !zipsPermitidos.includes(bookingState.zip)){
+        errBox.innerHTML = `<div class="form-error">${t('errZipFuera', escapeHtml(bookingState.zip), escapeHtml(zipsPermitidos.join(', ')))}</div>`;
+        return;
+      }
+    }
+
+    if(!bookingState.nombre){ errBox.innerHTML = `<div class="form-error">${t('errNombre')}</div>`; return; }
+    if(!bookingState.telefono){ errBox.innerHTML = `<div class="form-error">${t('errTelefono')}</div>`; return; }
+    if(!bookingState.email || !bookingState.email.includes('@')){ errBox.innerHTML = `<div class="form-error">${t('errCorreo')}</div>`; return; }
+
+    const btn = document.getElementById('btn-confirmar');
+    btn.disabled = true;
+    btn.textContent = t('confirmando');
+
+    try{
+      const s = SERVICIO_ELEGIDO;
+      const a = s.atributos_json || {};
+      const precio = a.categorias_precio ? a.categorias_precio[CATEGORIA_ELEGIDA] : 0;
+      const catLabel = CATEGORIAS.find(c => c.key === CATEGORIA_ELEGIDA)?.label || '';
+      const [hh, mm] = bookingState.hora.split(':');
+      const fechaCompleta = new Date(bookingState.fecha);
+      fechaCompleta.setHours(parseInt(hh), parseInt(mm || 0), 0, 0);
+
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/service_bookings`, {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+        body: JSON.stringify({
+          service_id: s.id,
+          client_id: null,
+          fecha_hora: fechaCompleta.toISOString(),
+          status: 'Pendiente',
+          direccion_o_marina: `${bookingState.direccion} (${bookingState.zip})`,
+          precio_total: precio,
+          duracion_min: a.duracion_min || 90,
+          notas: `${catLabel} · Reserva desde la web`,
+          guest_name: bookingState.nombre,
+          guest_phone: bookingState.telefono,
+          guest_email: bookingState.email
+        })
+      });
+      if(!res.ok) throw new Error('No se pudo crear la reserva');
+
+      try{
+        const conductores = await api(`conductors?id=eq.${s.provider_id}&select=push_token`);
+        const pushToken = conductores && conductores[0] && conductores[0].push_token;
+        if(pushToken){
+          await fetch('https://exp.host/--/api/v2/push/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ to: pushToken, title: 'Nueva Reserva de Carwash (Web)', body: `${s.nombre} · ${catLabel} · $${precio} · ${bookingState.nombre}` })
+          });
+        }
+      }catch(e){}
+
+      mostrarConfirmacionCW(precio);
+    }catch(e){
+      errBox.innerHTML = `<div class="form-error">${t('errGenerico')}</div>`;
+      btn.disabled = false;
+      btn.textContent = t('confirmarReserva');
+    }
+  }
+
+  function mostrarConfirmacionCW(total){
+    const company = COMPANY;
+    const box = document.getElementById('modal-box');
+    let depositoHtml = '';
+    if(company.carwash_deposit_type && company.carwash_deposit_type !== 'none' && company.carwash_deposit_value){
+      const monto = company.carwash_deposit_type === 'percent' ? (total * company.carwash_deposit_value / 100).toFixed(2) : company.carwash_deposit_value;
+      depositoHtml = `
+        <div class="deposit-box">
+          ${t('depositoTexto', monto)}
+        </div>
+        ${company.carwash_stripe_link ? `<a class="btn-confirm" style="display:block; text-align:center; text-decoration:none;" href="${company.carwash_stripe_link}" target="_blank" rel="noopener">${t('pagarDeposito')}</a>` : ''}
+      `;
+    }
+    box.innerHTML = `
+      <div class="confirm-screen">
+        <div class="confirm-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="8,12.5 10.5,15 16,9"/></svg>
+        </div>
+        <h2>${t('reservaEnviadaTitulo')}</h2>
+        <p>${t('reservaEnviadaTexto')}</p>
+        ${depositoHtml}
+        <button class="btn-confirm" style="background:transparent; border:1px solid var(--line); color:var(--text); margin-top:14px;" onclick="cerrarModal()">${t('cerrar')}</button>
+      </div>
+    `;
+  }
+
+  document.getElementById('modal-overlay').addEventListener('click', function(e){
+    if(e.target === this) cerrarModal();
+  });
+</script>
+
+</body>
+</html>

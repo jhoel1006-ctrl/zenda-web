@@ -1,0 +1,9 @@
+/bote/:slug      /.netlify/functions/bote-meta?slug=:slug      200
+/flota/:slug     /.netlify/functions/flota-meta?slug=:slug     200
+/carwash/:slug   /.netlify/functions/carwash-meta?slug=:slug   200
+/limpieza/:slug  /.netlify/functions/limpieza-meta?slug=:slug  200
+
+/flota/*     /flota.html     200
+/bote/*      /bote.html      200
+/carwash/*   /carwash.html   200
+/limpieza/*  /limpieza.html  200

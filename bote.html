@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yate — Zenda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0C10; --surface:#12151B; --surface-2:#171B22; --line:#212630;
+    --cyan:#00D4FF; --cyan-dim:#00D4FF22; --gold:#FFD166; --text:#F2F5F8; --muted:#8A94A6;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:'Manrope', sans-serif; min-height:100vh;}
+  h1,h2,h3{font-family:'Space Grotesk', sans-serif; letter-spacing:-0.02em;}
+  a{color:inherit;}
+
+  nav{display:flex; align-items:center; justify-content:space-between; padding:22px 6vw; border-bottom:1px solid var(--line);}
+  .logo{display:flex; align-items:center; gap:10px; font-weight:800; font-size:20px; text-decoration:none; color:inherit;}
+  .lang-toggle{display:flex; align-items:center; background:var(--surface); border:1px solid var(--line); border-radius:100px; padding:4px;}
+  .lang-toggle button{border:none; background:transparent; color:var(--muted); font-family:'Manrope', sans-serif; font-weight:700; font-size:12px; padding:6px 12px; border-radius:100px; cursor:pointer;}
+  .lang-toggle button.active{background:var(--cyan); color:#04121A;}
+
+  main{max-width:1100px; margin:0 auto; padding:0 6vw 8vw;}
+
+  .gallery{margin-top:0; position:relative;}
+  .gallery-scroll{
+    display:flex; overflow-x:auto; scroll-snap-type:x mandatory; gap:0;
+    -webkit-overflow-scrolling:touch;
+  }
+  .gallery-scroll::-webkit-scrollbar{display:none;}
+  .gallery-scroll img{
+    width:100%; flex-shrink:0; scroll-snap-align:start;
+    height:340px; object-fit:cover; background:var(--surface);
+  }
+  .gallery-ph{
+    width:100%; height:340px; background:var(--surface); display:flex;
+    align-items:center; justify-content:center;
+  }
+  .company-badge{
+    position:absolute; bottom:16px; right:16px; width:44px; height:44px;
+    border-radius:50%; overflow:hidden; border:2px solid #fff; background:var(--surface);
+  }
+  .company-badge img{width:100%; height:100%; object-fit:cover;}
+
+  .content{padding-top:32px; display:grid; grid-template-columns:1.4fr 1fr; gap:50px; align-items:start;}
+  .title-row h1{font-size:clamp(26px,3.6vw,38px); font-weight:700;}
+  .brand-line{color:var(--muted); font-size:15px; margin-top:6px;}
+  .company-line{display:flex; align-items:center; gap:8px; margin-top:10px; color:var(--muted); font-size:14px;}
+
+  .stats-row{display:flex; gap:22px; flex-wrap:wrap; margin-top:26px;}
+  .stat{display:flex; align-items:center; gap:8px; font-size:14px;}
+  .stat svg{flex-shrink:0;}
+
+  .section{margin-top:34px;}
+  .section h3{font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:10px;}
+  .section .val{font-size:15px;}
+
+  .badge-warning{
+    display:flex; align-items:center; gap:10px; background:var(--cyan-dim);
+    border:1px solid #00D4FF33; border-radius:12px; padding:14px 16px; margin-top:30px;
+    font-size:13px; color:var(--text); line-height:1.5;
+  }
+
+  .book-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:20px;
+    padding:26px; position:sticky; top:24px;
+  }
+  .price-big{font-size:34px; font-weight:700; font-family:'Space Grotesk';}
+  .price-big span{font-size:15px; color:var(--muted); font-weight:400; font-family:'Manrope';}
+  .price-weekend{color:var(--gold); font-size:13px; margin-top:6px;}
+  .deposit-box{
+    background:var(--surface-2); border:1px solid var(--line); border-radius:12px;
+    padding:14px 16px; margin-top:20px; font-size:13px; color:var(--muted); line-height:1.5;
+  }
+  .deposit-box b{color:var(--gold);}
+  .btn-wa{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    background:transparent; color:var(--text); font-weight:700; font-size:14px;
+    padding:14px; border-radius:12px; margin-top:12px; text-decoration:none;
+    border:1px solid var(--line);
+  }
+  .btn-wa svg{flex-shrink:0; color:#25D366;}
+  .min-hours{text-align:center; color:var(--muted); font-size:12px; margin-top:12px;}
+
+  .btn-reservar{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    background:var(--cyan); color:#04121A; font-weight:700; font-size:15px;
+    padding:16px; border-radius:12px; margin-top:20px; border:none; width:100%; cursor:pointer;
+  }
+
+  .modal-overlay{
+    display:none; position:fixed; inset:0; background:#000000cc; z-index:100;
+    align-items:flex-end; justify-content:center;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal-box{
+    background:var(--bg); width:100%; max-width:520px; max-height:90vh; overflow-y:auto;
+    border-radius:24px 24px 0 0; padding:26px 24px 34px; border-top:1px solid var(--line);
+  }
+  @media (min-width:560px){
+    .modal-overlay{align-items:center;}
+    .modal-box{border-radius:24px; max-height:85vh;}
+  }
+  .modal-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;}
+  .modal-header h2{font-size:20px;}
+  .modal-close{background:var(--surface); border:1px solid var(--line); border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text);}
+
+  .field-label{font-size:13px; font-weight:700; color:var(--muted); margin:18px 0 8px;}
+  .field-label:first-child{margin-top:0;}
+  .text-input{
+    width:100%; background:var(--surface); border:1px solid var(--line); color:var(--text);
+    padding:14px 16px; border-radius:10px; font-size:15px; font-family:'Manrope';
+  }
+  .text-input:focus{outline:none; border-color:var(--cyan);}
+
+  .cal-box{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px;}
+  .cal-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .cal-header button{background:none; border:none; color:var(--cyan); font-size:20px; font-weight:700; cursor:pointer; padding:4px 10px;}
+  .cal-header span{font-weight:700; font-size:14px;}
+  .cal-dow{display:flex; margin-bottom:4px;}
+  .cal-dow div{flex:1; text-align:center; color:var(--muted); font-size:11px; font-weight:700;}
+  .cal-grid{display:flex; flex-wrap:wrap;}
+  .cal-day{width:14.28%; height:38px; display:flex; align-items:center; justify-content:center;}
+  .cal-day button{
+    width:30px; height:30px; border-radius:50%; border:none; background:none; color:var(--text);
+    font-size:13px; cursor:pointer; font-family:'Manrope';
+  }
+  .cal-day button.occupied{color:#FF3B30; text-decoration:line-through; cursor:not-allowed;}
+  .cal-day button.past{color:#333; cursor:not-allowed;}
+  .cal-day button.selected{background:var(--cyan); color:#04121A; font-weight:700;}
+  .cal-legend{display:flex; gap:16px; justify-content:center; margin-top:10px; font-size:11px; color:var(--muted);}
+  .cal-legend span{display:flex; align-items:center; gap:5px;}
+  .legend-dot{width:8px; height:8px; border-radius:50%;}
+
+  .slot-row{display:flex; gap:10px;}
+  .slot-btn{
+    flex:1; padding:14px; border-radius:10px; border:1px solid var(--line);
+    background:var(--surface); color:var(--muted); font-family:'Manrope'; font-weight:700; font-size:14px; cursor:pointer;
+    text-align:center;
+  }
+  .slot-btn.active{border-color:var(--cyan); background:var(--cyan-dim); color:var(--cyan);}
+
+  .hours-row{display:flex; align-items:center; justify-content:center; gap:20px;}
+  .hours-btn{
+    width:42px; height:42px; border-radius:50%; background:var(--surface); border:1px solid var(--line);
+    color:var(--text); font-size:20px; font-weight:700; cursor:pointer;
+  }
+  .hours-num{font-size:22px; font-weight:700; min-width:36px; text-align:center;}
+
+  .summary-box{
+    background:var(--surface); border-radius:14px; padding:18px; margin-top:20px; text-align:center;
+  }
+  .summary-box .lbl{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; font-weight:700;}
+  .summary-box .amt{font-size:30px; font-weight:700; font-family:'Space Grotesk'; margin-top:4px;}
+  .summary-box .det{font-size:13px; color:var(--muted); margin-top:4px;}
+
+  .btn-confirm{
+    width:100%; background:var(--cyan); color:#04121A; font-weight:700; font-size:15px;
+    padding:16px; border-radius:12px; margin-top:22px; border:none; cursor:pointer;
+  }
+  .btn-confirm:disabled{opacity:0.5; cursor:not-allowed;}
+  .form-error{color:#FF3B30; font-size:13px; margin-top:10px; text-align:center;}
+
+  .confirm-screen{text-align:center; padding:20px 0;}
+  .confirm-icon{width:60px; height:60px; border-radius:50%; background:var(--cyan-dim); display:flex; align-items:center; justify-content:center; margin:0 auto 18px;}
+  .confirm-screen h2{font-size:22px; margin-bottom:8px;}
+  .confirm-screen p{color:var(--muted); font-size:14px; line-height:1.6;}
+
+  .loading, .error{text-align:center; padding:100px 20px; color:var(--muted);}
+  .spinner{width:28px; height:28px; border:3px solid var(--line); border-top-color:var(--cyan); border-radius:50%; margin:0 auto 16px; animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  @media (max-width:800px){
+    .content{grid-template-columns:1fr;}
+    .book-card{position:static;}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="/">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="1.6"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    ZENDA
+  </a>
+  <div class="lang-toggle">
+    <button id="btn-es" onclick="setLang('es')">ES</button>
+    <button id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+</nav>
+
+<div id="loading" class="loading"><div class="spinner"></div><span id="loading-text">Cargando yate...</span></div>
+<div id="error" class="error" style="display:none;"><span id="error-text">No se encontró este yate.</span></div>
+
+<main id="main" style="display:none;">
+  <div class="gallery">
+    <div class="gallery-scroll" id="gallery-scroll"></div>
+    <div class="company-badge" id="company-badge" style="display:none;"><img id="company-badge-img"></div>
+  </div>
+
+  <div class="content">
+    <div>
+      <div class="title-row">
+        <h1 id="boat-name"></h1>
+        <p class="brand-line" id="boat-brand"></p>
+        <div class="company-line" id="company-line" style="display:none;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A94A6" stroke-width="2"><circle cx="8" cy="8" r="3"/><path d="M2 20c0-2.8 2.7-5 6-5s6 2.2 6 5"/><circle cx="17" cy="9" r="2.5"/><path d="M15 20c0-2.2 1.8-4 4-4"/></svg>
+          <span id="company-line-text"></span>
+        </div>
+        <p id="company-description" style="color:var(--muted); font-size:13px; margin-top:8px; display:none;"></p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><path d="M6 18v-6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v6"/><line x1="6" y1="18" x2="6" y2="21"/><line x1="18" y1="18" x2="18" y2="21"/></svg><span id="stat-cap"></span></div>
+        <div class="stat"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="21"/><path d="M5 12a7 7 0 0 0 7 9 7 7 0 0 0 7-9"/></svg><span id="stat-eslora"></span></div>
+        <div class="stat"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span id="stat-ano"></span></div>
+      </div>
+
+      <div class="section">
+        <h3 id="label-marina">Marina</h3>
+        <div class="val" id="val-marina"></div>
+      </div>
+      <div class="section">
+        <h3 id="label-tipo">Tipo de embarcación</h3>
+        <div class="val" id="val-tipo"></div>
+      </div>
+      <div class="section">
+        <h3 id="label-capitan">Capitán</h3>
+        <div class="val" id="val-capitan"></div>
+      </div>
+
+      <div class="badge-warning">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2" style="flex-shrink:0;"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z"/></svg>
+        <span id="badge-uscg-text">Capacidad máxima 13 personas por regulación USCG.</span>
+      </div>
+    </div>
+
+    <div class="book-card">
+      <div class="price-big" id="price-big"></div>
+      <div class="price-weekend" id="price-weekend" style="display:none;"></div>
+      <div class="min-hours" id="min-hours"></div>
+      <div class="deposit-box" id="deposit-box" style="display:none;"></div>
+      <button class="btn-reservar" id="btn-reservar-abrir"><span id="btn-reservar-text">Reservar ahora</span></button>
+      <a class="btn-wa" id="btn-wa" href="#" target="_blank" rel="noopener">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.75 1.21h.01c5.46 0 9.91-4.45 9.91-9.91C21.92 6.45 17.5 2 12.04 2zm5.79 14.09c-.24.68-1.4 1.3-1.93 1.38-.5.08-1.11.11-1.79-.11-.41-.13-.94-.3-1.62-.6-2.86-1.24-4.72-4.12-4.86-4.31-.14-.19-1.16-1.54-1.16-2.94s.73-2.09.99-2.37c.26-.29.56-.36.75-.36h.54c.17 0 .4-.02.63.48s.77 1.9.84 2.04c.07.14.11.31.02.5-.09.19-.14.31-.28.48-.14.17-.29.38-.42.51-.14.14-.29.29-.13.57.17.29.75 1.24 1.61 2 1.11 1 2.04 1.31 2.33 1.46.29.14.46.12.63-.07.17-.19.72-.84.91-1.13.19-.29.38-.24.63-.14.26.1 1.63.77 1.9.91.28.14.46.21.53.33.07.13.07.72-.17 1.4z"/></svg>
+        <span id="btn-wa-text">Contactar por WhatsApp</span>
+      </a>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box" id="modal-box">
+    <!-- content injected by JS -->
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://bwbytdevgxywwzglyiri.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_ePnGY7Nr8fXx02Zmhy-nuw_rMfJN1GO';
+
+  const T = {
+    es: {
+      loading: 'Cargando yate...',
+      error: 'No se encontró este yate.',
+      marina: 'Marina',
+      tipo: 'Tipo de embarcación',
+      capitan: 'Capitán',
+      uscg: 'Capacidad máxima 13 personas por regulación USCG.',
+      reservarAhora: 'Reservar ahora',
+      contactarWa: 'Contactar por WhatsApp',
+      contactoNoDisponible: 'Contacto no disponible',
+      personas: 'personas',
+      pies: 'pies',
+      finSemana: (p) => `Fin de semana: $${p}/hora`,
+      minHoras: (h) => `Mínimo ${h} horas por reserva`,
+      capitanIncluido: (t) => `Incluido${t ? ' ($' + t + '/hora)' : ''}`,
+      capitanNoIncluido: 'No incluido',
+      depositoTexto: (dep) => `Depósito de <b>$${dep}</b> para confirmar tu lugar. El resto se paga con Zelle al abordar.`,
+      pagarDeposito: 'Pagar depósito ahora',
+      modalTituloReservar: 'Reservar',
+      manana: 'Mañana',
+      tarde: 'Tarde',
+      cantidadHoras: (h) => `Cantidad de horas (mínimo ${h})`,
+      tuNombre: 'Tu nombre',
+      nombreCompleto: 'Nombre completo',
+      tuTelefono: 'Tu teléfono',
+      tuCorreo: 'Tu correo',
+      precioTotal: 'PRECIO TOTAL',
+      eligeFechaHorario: 'Elige fecha y horario',
+      seleccionado: 'Seleccionado',
+      ocupado: 'Ocupado',
+      confirmarReserva: 'Confirmar reserva',
+      confirmando: 'Confirmando...',
+      errElegirFecha: 'Elige una fecha',
+      errElegirHorario: 'Elige un horario',
+      errNombre: 'Ingresa tu nombre',
+      errTelefono: 'Ingresa tu teléfono',
+      errCorreo: 'Ingresa un correo válido',
+      errGenerico: 'Ocurrió un error, intenta de nuevo.',
+      reservaEnviadaTitulo: 'Reserva enviada',
+      reservaEnviadaTexto: 'El proveedor confirmará tu reserva pronto. Te recomendamos guardar su contacto de WhatsApp para coordinar los detalles.',
+      presentateEn: 'Preséntate en',
+      cerrar: 'Cerrar',
+      horasTexto: (h, f) => `${h} horas · ${f}`,
+      dow: ['D','L','M','M','J','V','S'],
+      locale: 'es-US',
+    },
+    en: {
+      loading: 'Loading yacht...',
+      error: 'This yacht could not be found.',
+      marina: 'Marina',
+      tipo: 'Vessel type',
+      capitan: 'Captain',
+      uscg: 'Maximum capacity of 13 people per USCG regulation.',
+      reservarAhora: 'Book now',
+      contactarWa: 'Contact via WhatsApp',
+      contactoNoDisponible: 'Contact not available',
+      personas: 'people',
+      pies: 'feet',
+      finSemana: (p) => `Weekend rate: $${p}/hour`,
+      minHoras: (h) => `Minimum ${h} hours per booking`,
+      capitanIncluido: (t) => `Included${t ? ' ($' + t + '/hour)' : ''}`,
+      capitanNoIncluido: 'Not included',
+      depositoTexto: (dep) => `A <b>$${dep}</b> deposit is required to confirm your spot. The rest is paid via Zelle when boarding.`,
+      pagarDeposito: 'Pay deposit now',
+      modalTituloReservar: 'Book',
+      manana: 'Morning',
+      tarde: 'Afternoon',
+      cantidadHoras: (h) => `Number of hours (minimum ${h})`,
+      tuNombre: 'Your name',
+      nombreCompleto: 'Full name',
+      tuTelefono: 'Your phone',
+      tuCorreo: 'Your email',
+      precioTotal: 'TOTAL PRICE',
+      eligeFechaHorario: 'Choose a date and time slot',
+      seleccionado: 'Selected',
+      ocupado: 'Booked',
+      confirmarReserva: 'Confirm booking',
+      confirmando: 'Confirming...',
+      errElegirFecha: 'Choose a date',
+      errElegirHorario: 'Choose a time slot',
+      errNombre: 'Enter your name',
+      errTelefono: 'Enter your phone number',
+      errCorreo: 'Enter a valid email',
+      errGenerico: 'Something went wrong, please try again.',
+      reservaEnviadaTitulo: 'Booking sent',
+      reservaEnviadaTexto: 'The provider will confirm your booking soon. We recommend saving their WhatsApp contact to coordinate the details.',
+      presentateEn: 'Show up at',
+      cerrar: 'Close',
+      horasTexto: (h, f) => `${h} hours · ${f}`,
+      dow: ['S','M','T','W','T','F','S'],
+      locale: 'en-US',
+    }
+  };
+
+  let currentLang = localStorage.getItem('zenda_lang') || 'es';
+  function t(key, ...args){
+    const val = T[currentLang][key];
+    return typeof val === 'function' ? val(...args) : val;
+  }
+
+  function aplicarTraduccionesEstaticas(){
+    document.getElementById('btn-es').classList.toggle('active', currentLang === 'es');
+    document.getElementById('btn-en').classList.toggle('active', currentLang === 'en');
+    document.documentElement.lang = currentLang;
+    document.getElementById('loading-text').textContent = t('loading');
+    document.getElementById('error-text').textContent = t('error');
+    document.getElementById('label-marina').textContent = t('marina');
+    document.getElementById('label-tipo').textContent = t('tipo');
+    document.getElementById('label-capitan').textContent = t('capitan');
+    document.getElementById('badge-uscg-text').textContent = t('uscg');
+    document.getElementById('btn-reservar-text').textContent = t('reservarAhora');
+  }
+
+  function setLang(lang){
+    currentLang = lang;
+    localStorage.setItem('zenda_lang', lang);
+    aplicarTraduccionesEstaticas();
+    // Si ya cargó el yate, volvemos a pintar los valores que dependen del idioma
+    if(window.ZENDA_BOAT) renderizarDatosYate();
+    // Si el modal de reserva está abierto, lo regeneramos en el nuevo idioma
+    if(document.getElementById('modal-overlay').classList.contains('open')){
+      renderModalForm();
+      renderCalendarWeb();
+      actualizarResumen();
+    }
+  }
+
+  function getSlugFromPath(){
+    const parts = window.location.pathname.split('/').filter(Boolean);
+    const idx = parts.indexOf('bote');
+    return idx >= 0 ? parts[idx + 1] : null;
+  }
+
+  async function api(path){
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    return res.json();
+  }
+
+  // ---- Caché con sessionStorage (misma estrategia que flota.html) ----
+  async function cachedApi(path, ttlSeconds){
+    const cacheKey = 'zenda_cache_' + path;
+    try{
+      const cached = sessionStorage.getItem(cacheKey);
+      if(cached){
+        const parsed = JSON.parse(cached);
+        const edadSegundos = (Date.now() - parsed.ts) / 1000;
+        if(edadSegundos < ttlSeconds){
+          return parsed.data;
+        }
+      }
+    }catch(e){}
+    const data = await api(path);
+    try{
+      sessionStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data }));
+    }catch(e){}
+    return data;
+  }
+
+  function esFinDeSemana(){
+    const d = new Date().getDay();
+    return d === 0 || d === 6;
+  }
+
+  async function cargar(){
+    aplicarTraduccionesEstaticas();
+    const slug = getSlugFromPath();
+    if(!slug){
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+      return;
+    }
+    try{
+      const boats = await cachedApi(`services?slug=eq.${encodeURIComponent(slug)}&type=eq.yacht&activo=eq.true&select=*,companies(yacht_business_name,yacht_logo_url,company_slug,yacht_description)`, 120);
+      if(!boats || !boats.length){
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error').style.display = 'block';
+        return;
+      }
+      const b = boats[0];
+      const a = b.atributos_json || {};
+      const nombreBote = a.nombre_bote || b.nombre;
+
+      document.getElementById('boat-name').textContent = nombreBote;
+      if(a.marca_modelo) document.getElementById('boat-brand').textContent = a.marca_modelo;
+
+      if(b.companies){
+        document.getElementById('company-line').style.display = 'flex';
+        document.getElementById('company-line-text').textContent = b.companies.yacht_business_name;
+        if(b.companies.yacht_description){
+          document.getElementById('company-description').textContent = b.companies.yacht_description;
+          document.getElementById('company-description').style.display = 'block';
+        }
+        if(b.companies.yacht_logo_url){
+          document.getElementById('company-badge').style.display = 'block';
+          document.getElementById('company-badge-img').src = b.companies.yacht_logo_url;
+        }
+      }
+
+      const gallery = document.getElementById('gallery-scroll');
+      if(a.fotos && a.fotos.length){
+        gallery.innerHTML = a.fotos.map(f => `<img src="${f}" alt="${nombreBote}">`).join('');
+      } else {
+        gallery.innerHTML = `<div class="gallery-ph"><svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.6"><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="21"/><path d="M5 12a7 7 0 0 0 7 9 7 7 0 0 0 7-9"/></svg></div>`;
+      }
+
+      // ---- Flujo de reserva ----
+      window.ZENDA_BOAT = b;
+      window.ZENDA_ATTR = a;
+      window.ZENDA_NOMBRE_BOTE = nombreBote;
+
+      renderizarDatosYate();
+
+      // Mostrar la página de inmediato — no hace falta esperar el teléfono del proveedor para eso
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('main').style.display = 'block';
+
+      document.getElementById('btn-reservar-abrir').addEventListener('click', abrirModalReserva);
+
+      // El teléfono del proveedor se busca en paralelo, sin bloquear la vista;
+      // el botón de WhatsApp se activa apenas llegue la respuesta.
+      const btnWa = document.getElementById('btn-wa');
+      api(`conductors?id=eq.${b.provider_id}&select=phone,full_name`).then(conductores => {
+        const conductorPhone = conductores && conductores[0] && conductores[0].phone;
+        window.ZENDA_CONDUCTOR_PHONE = conductorPhone || null;
+        actualizarBotonWhatsapp();
+      }).catch(() => {
+        window.ZENDA_CONDUCTOR_PHONE = null;
+        btnWa.style.opacity = '0.5';
+        btnWa.style.pointerEvents = 'none';
+      });
+    }catch(e){
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+    }
+  }
+  cargar();
+
+  // Pinta título de la página, medidas, marina/tipo/capitán, precio y depósito
+  // según el idioma actual. Se llama al cargar y de nuevo si cambia el idioma.
+  function renderizarDatosYate(){
+    const b = window.ZENDA_BOAT;
+    const a = window.ZENDA_ATTR;
+    const nombreBote = window.ZENDA_NOMBRE_BOTE;
+    document.title = `${nombreBote} — Zenda ${currentLang === 'es' ? 'Yates' : 'Yachts'}`;
+
+    document.getElementById('stat-cap').textContent = (a.capacidad || '-') + ' ' + t('personas');
+    document.getElementById('stat-eslora').textContent = (a.eslora || '-') + ' ' + t('pies');
+    document.getElementById('stat-ano').textContent = a.ano || '-';
+    document.getElementById('val-marina').textContent = a.marina || '-';
+    document.getElementById('val-tipo').textContent = a.tipo_embarcacion || '-';
+    document.getElementById('val-capitan').textContent = a.con_capitan
+      ? t('capitanIncluido', a.tarifa_capitan)
+      : t('capitanNoIncluido');
+
+    const precioHoy = (esFinDeSemana() && a.precio_fin_semana) ? a.precio_fin_semana : b.precio_base;
+    document.getElementById('price-big').innerHTML = `$${precioHoy}<span> /${currentLang === 'es' ? 'hora' : 'hour'}</span>`;
+    if(a.precio_fin_semana){
+      document.getElementById('price-weekend').style.display = 'block';
+      document.getElementById('price-weekend').textContent = t('finSemana', a.precio_fin_semana);
+    }
+    document.getElementById('min-hours').textContent = t('minHoras', a.min_horas || 4);
+
+    if(a.deposito){
+      document.getElementById('deposit-box').style.display = 'block';
+      document.getElementById('deposit-box').innerHTML = t('depositoTexto', a.deposito);
+    }
+
+    actualizarBotonWhatsapp();
+  }
+
+  function actualizarBotonWhatsapp(){
+    const btnWa = document.getElementById('btn-wa');
+    const conductorPhone = window.ZENDA_CONDUCTOR_PHONE;
+    if(conductorPhone){
+      const digits = conductorPhone.replace(/[^0-9]/g, '');
+      const msgEs = `Hola, tengo una pregunta sobre el yate "${window.ZENDA_NOMBRE_BOTE}" — vi la publicación en Zenda.`;
+      const msgEn = `Hi, I have a question about the yacht "${window.ZENDA_NOMBRE_BOTE}" — I saw the listing on Zenda.`;
+      const msg = encodeURIComponent(currentLang === 'es' ? msgEs : msgEn);
+      btnWa.href = `https://wa.me/${digits}?text=${msg}`;
+      document.getElementById('btn-wa-text').textContent = t('contactarWa');
+    } else if(window.ZENDA_CONDUCTOR_PHONE === null && window.ZENDA_BOAT){
+      btnWa.style.opacity = '0.5';
+      btnWa.style.pointerEvents = 'none';
+      document.getElementById('btn-wa-text').textContent = t('contactoNoDisponible');
+    }
+  }
+
+  // ================= FLUJO DE RESERVA =================
+  const bookingState = {
+    mes: new Date(),
+    fecha: null,
+    horario: null, // 'manana' | 'tarde'
+    horas: 4,
+    ocupados: [],
+    nombre: '',
+    telefono: '',
+    email: ''
+  };
+
+  function generarDiasCalendarioWeb(mesBase){
+    const year = mesBase.getFullYear();
+    const month = mesBase.getMonth();
+    const primerDia = new Date(year, month, 1);
+    const ultimoDia = new Date(year, month + 1, 0);
+    const dias = [];
+    for(let i = 0; i < primerDia.getDay(); i++) dias.push(null);
+    for(let d = 1; d <= ultimoDia.getDate(); d++) dias.push(new Date(year, month, d));
+    return dias;
+  }
+
+  function fechaOcupadaWeb(fecha){
+    if(!fecha) return false;
+    const str = fecha.toDateString();
+    return bookingState.ocupados.some(o => new Date(o.fecha_hora).toDateString() === str);
+  }
+
+  async function cargarOcupados(){
+    const data = await api(`service_bookings?service_id=eq.${window.ZENDA_BOAT.id}&status=in.(Pendiente,Confirmado,Bloqueado)&select=fecha_hora`);
+    bookingState.ocupados = data || [];
+  }
+
+  function calcularPrecioWeb(){
+    const a = window.ZENDA_ATTR;
+    const b = window.ZENDA_BOAT;
+    if(!bookingState.fecha) return 0;
+    const dia = bookingState.fecha.getDay();
+    const esFin = dia === 0 || dia === 6;
+    const precioHora = (esFin && a.precio_fin_semana) ? a.precio_fin_semana : b.precio_base;
+    return precioHora * bookingState.horas;
+  }
+
+  function abrirModalReserva(){
+    bookingState.fecha = null;
+    bookingState.horario = null;
+    bookingState.horas = window.ZENDA_ATTR.min_horas || 4;
+    bookingState.mes = new Date();
+    document.getElementById('modal-overlay').classList.add('open');
+    renderModalForm();
+    cargarOcupados().then(renderCalendarWeb);
+  }
+
+  function cerrarModal(){
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+
+  function renderModalForm(){
+    const box = document.getElementById('modal-box');
+    box.innerHTML = `
+      <div class="modal-header">
+        <h2>${t('modalTituloReservar')}</h2>
+        <button class="modal-close" onclick="cerrarModal()">✕</button>
+      </div>
+      <div class="field-label">${currentLang === 'es' ? 'Fecha' : 'Date'}</div>
+      <div class="cal-box" id="cal-box"></div>
+      <div class="cal-legend">
+        <span><span class="legend-dot" style="background:#00D4FF"></span>${t('seleccionado')}</span>
+        <span><span class="legend-dot" style="background:#FF3B30"></span>${t('ocupado')}</span>
+      </div>
+
+      <div class="field-label">${currentLang === 'es' ? 'Horario' : 'Time slot'}</div>
+      <div class="slot-row">
+        <button class="slot-btn" id="slot-manana" onclick="elegirSlot('manana')">${t('manana')}<br><span style="font-size:11px;opacity:0.7;">9:00 AM</span></button>
+        <button class="slot-btn" id="slot-tarde" onclick="elegirSlot('tarde')">${t('tarde')}<br><span style="font-size:11px;opacity:0.7;">2:00 PM</span></button>
+      </div>
+
+      <div class="field-label">${t('cantidadHoras', window.ZENDA_ATTR.min_horas || 4)}</div>
+      <div class="hours-row">
+        <button class="hours-btn" onclick="cambiarHoras(-1)">−</button>
+        <div class="hours-num" id="horas-num">${bookingState.horas}</div>
+        <button class="hours-btn" onclick="cambiarHoras(1)">+</button>
+      </div>
+
+      <div class="field-label">${t('tuNombre')}</div>
+      <input class="text-input" id="input-nombre" placeholder="${t('nombreCompleto')}" value="${bookingState.nombre}">
+
+      <div class="field-label">${t('tuTelefono')}</div>
+      <input class="text-input" id="input-telefono" placeholder="Ej: +1 786 555 1234" value="${bookingState.telefono}">
+
+      <div class="field-label">${t('tuCorreo')}</div>
+      <input class="text-input" id="input-email" type="email" placeholder="tucorreo@ejemplo.com" value="${bookingState.email}">
+      <div style="color:var(--muted); font-size:12px; margin-top:6px;">${currentLang === 'es' ? 'Para enviarte el recibo de tu pago' : 'To send you your payment receipt'}</div>
+
+      <div class="summary-box">
+        <div class="lbl">${t('precioTotal')}</div>
+        <div class="amt" id="precio-total">$0.00</div>
+        <div class="det" id="precio-detalle">${t('eligeFechaHorario')}</div>
+      </div>
+
+      <div id="form-error"></div>
+      <button class="btn-confirm" id="btn-confirmar" onclick="confirmarReservaWeb()">${t('confirmarReserva')}</button>
+    `;
+    actualizarResumen();
+  }
+
+  function renderCalendarWeb(){
+    const dias = generarDiasCalendarioWeb(bookingState.mes);
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const mesNombre = bookingState.mes.toLocaleDateString(t('locale'), {month:'long', year:'numeric'});
+    let html = `
+      <div class="cal-header">
+        <button onclick="cambiarMes(-1)">‹</button>
+        <span>${mesNombre}</span>
+        <button onclick="cambiarMes(1)">›</button>
+      </div>
+      <div class="cal-dow">${t('dow').map(d=>`<div>${d}</div>`).join('')}</div>
+      <div class="cal-grid">
+    `;
+    dias.forEach(dia => {
+      if(!dia){ html += `<div class="cal-day"></div>`; return; }
+      const esPasado = dia < hoy;
+      const ocupado = fechaOcupadaWeb(dia);
+      const seleccionado = bookingState.fecha && dia.toDateString() === bookingState.fecha.toDateString();
+      const cls = seleccionado ? 'selected' : (esPasado ? 'past' : (ocupado ? 'occupied' : ''));
+      const disabled = (esPasado || ocupado) ? 'disabled' : '';
+      html += `<div class="cal-day"><button class="${cls}" ${disabled} onclick="elegirFecha(${dia.getTime()})">${dia.getDate()}</button></div>`;
+    });
+    html += `</div>`;
+    document.getElementById('cal-box').innerHTML = html;
+    // Mantener el estado visual de la franja (Mañana/Tarde) si ya se había elegido
+    if(bookingState.horario){
+      const btn = document.getElementById('slot-' + bookingState.horario);
+      if(btn) btn.classList.add('active');
+    }
+  }
+
+  function cambiarMes(delta){
+    bookingState.mes = new Date(bookingState.mes.getFullYear(), bookingState.mes.getMonth() + delta, 1);
+    renderCalendarWeb();
+  }
+
+  function elegirFecha(timestamp){
+    bookingState.fecha = new Date(timestamp);
+    renderCalendarWeb();
+    actualizarResumen();
+  }
+
+  function elegirSlot(slot){
+    bookingState.horario = slot;
+    document.getElementById('slot-manana').classList.toggle('active', slot === 'manana');
+    document.getElementById('slot-tarde').classList.toggle('active', slot === 'tarde');
+    actualizarResumen();
+  }
+
+  function cambiarHoras(delta){
+    const min = window.ZENDA_ATTR.min_horas || 4;
+    bookingState.horas = Math.max(min, bookingState.horas + delta);
+    document.getElementById('horas-num').textContent = bookingState.horas;
+    actualizarResumen();
+  }
+
+  function actualizarResumen(){
+    const total = calcularPrecioWeb();
+    document.getElementById('precio-total').textContent = `$${total.toFixed(2)}`;
+    if(bookingState.fecha){
+      const fechaStr = bookingState.fecha.toLocaleDateString(t('locale'), {weekday:'long', month:'long', day:'numeric'});
+      document.getElementById('precio-detalle').textContent = t('horasTexto', bookingState.horas, fechaStr);
+    } else {
+      document.getElementById('precio-detalle').textContent = t('eligeFechaHorario');
+    }
+  }
+
+  async function confirmarReservaWeb(){
+    bookingState.nombre = document.getElementById('input-nombre').value.trim();
+    bookingState.telefono = document.getElementById('input-telefono').value.trim();
+    bookingState.email = document.getElementById('input-email').value.trim();
+    const errBox = document.getElementById('form-error');
+    errBox.innerHTML = '';
+
+    if(!bookingState.fecha){ errBox.innerHTML = `<div class="form-error">${t('errElegirFecha')}</div>`; return; }
+    if(!bookingState.horario){ errBox.innerHTML = `<div class="form-error">${t('errElegirHorario')}</div>`; return; }
+    if(!bookingState.nombre){ errBox.innerHTML = `<div class="form-error">${t('errNombre')}</div>`; return; }
+    if(!bookingState.telefono){ errBox.innerHTML = `<div class="form-error">${t('errTelefono')}</div>`; return; }
+    if(!bookingState.email || !bookingState.email.includes('@')){ errBox.innerHTML = `<div class="form-error">${t('errCorreo')}</div>`; return; }
+
+    const btn = document.getElementById('btn-confirmar');
+    btn.disabled = true;
+    btn.textContent = t('confirmando');
+
+    try{
+      const fechaCompleta = new Date(bookingState.fecha);
+      fechaCompleta.setHours(bookingState.horario === 'manana' ? 9 : 14, 0, 0, 0);
+      const total = calcularPrecioWeb();
+
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/service_bookings`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Content-Type': 'application/json', 'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({
+          service_id: window.ZENDA_BOAT.id,
+          client_id: null,
+          fecha_hora: fechaCompleta.toISOString(),
+          status: 'Pendiente',
+          direccion_o_marina: window.ZENDA_ATTR.marina || '',
+          precio_total: total,
+          notas: `${bookingState.horas} horas · Reserva desde la web`,
+          guest_name: bookingState.nombre,
+          guest_phone: bookingState.telefono,
+          guest_email: bookingState.email
+        })
+      });
+      if(!res.ok) throw new Error('No se pudo crear la reserva');
+
+      try{
+        const conductores = await api(`conductors?id=eq.${window.ZENDA_BOAT.provider_id}&select=push_token`);
+        const pushToken = conductores && conductores[0] && conductores[0].push_token;
+        if(pushToken){
+          await fetch('https://exp.host/--/api/v2/push/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+              to: pushToken,
+              title: 'Nueva Reserva de Yate (Web)',
+              body: `${window.ZENDA_NOMBRE_BOTE} · ${bookingState.horas} horas · $${total.toFixed(2)} · ${bookingState.nombre}`
+            })
+          });
+        }
+      }catch(e){}
+
+      mostrarConfirmacion(total);
+    }catch(e){
+      errBox.innerHTML = `<div class="form-error">${t('errGenerico')}</div>`;
+      btn.disabled = false;
+      btn.textContent = t('confirmarReserva');
+    }
+  }
+
+  function mostrarConfirmacion(total){
+    const a = window.ZENDA_ATTR;
+    const box = document.getElementById('modal-box');
+    const marinaHtml = a.marina ? `
+      <div style="background:var(--surface-2); border-radius:12px; padding:16px; margin-top:20px; text-align:left;">
+        <div style="font-size:11px; color:var(--muted); text-transform:uppercase; font-weight:700; margin-bottom:4px;">${t('presentateEn')}</div>
+        <div style="font-size:16px; font-weight:700;">${a.marina}</div>
+      </div>
+    ` : '';
+    let depositoHtml = '';
+    if(a.deposito){
+      const restante = (total - a.deposito).toFixed(2);
+      const textoDeposito = currentLang === 'es'
+        ? `Depósito de <b>$${a.deposito}</b> para confirmar tu lugar. El resto ($${restante}) se paga con Zelle al abordar.`
+        : `A <b>$${a.deposito}</b> deposit is required to confirm your spot. The rest ($${restante}) is paid via Zelle when boarding.`;
+      depositoHtml = `
+        <div class="deposit-box" style="text-align:left; margin-top:24px;">
+          ${textoDeposito}
+        </div>
+        ${a.stripe_link ? `<a class="btn-confirm" style="display:block; text-align:center; text-decoration:none;" href="${a.stripe_link}" target="_blank" rel="noopener">${t('pagarDeposito')}</a>` : ''}
+      `;
+    }
+    box.innerHTML = `
+      <div class="confirm-screen">
+        <div class="confirm-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="8,12.5 10.5,15 16,9"/></svg>
+        </div>
+        <h2>${t('reservaEnviadaTitulo')}</h2>
+        <p>${t('reservaEnviadaTexto')}</p>
+        ${marinaHtml}
+        ${depositoHtml}
+        <button class="btn-confirm" style="background:transparent; border:1px solid var(--line); color:var(--text); margin-top:14px;" onclick="cerrarModal()">${t('cerrar')}</button>
+      </div>
+    `;
+  }
+
+  document.getElementById('modal-overlay').addEventListener('click', function(e){
+    if(e.target === this) cerrarModal();
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flota — Zenda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0C10; --surface:#12151B; --surface-2:#171B22; --line:#212630;
+    --cyan:#00D4FF; --cyan-dim:#00D4FF22; --gold:#FFD166; --text:#F2F5F8; --muted:#8A94A6;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:'Manrope', sans-serif; min-height:100vh;}
+  h1,h2,h3{font-family:'Space Grotesk', sans-serif; letter-spacing:-0.02em;}
+  a{color:inherit; text-decoration:none;}
+
+  nav{
+    display:flex; align-items:center; justify-content:space-between; padding:22px 6vw;
+    border-bottom:1px solid var(--line);
+  }
+  .logo{display:flex; align-items:center; gap:10px; font-weight:800; font-size:20px;}
+  .lang-toggle{
+    display:flex; align-items:center; background:var(--surface);
+    border:1px solid var(--line); border-radius:100px; padding:4px;
+  }
+  .lang-toggle button{
+    border:none; background:transparent; color:var(--muted);
+    font-family:'Manrope', sans-serif; font-weight:700; font-size:12px;
+    padding:6px 12px; border-radius:100px; cursor:pointer;
+  }
+  .lang-toggle button.active{background:var(--cyan); color:#04121A;}
+
+  header{padding:6vw 6vw 3vw; max-width:1200px; margin:0 auto;}
+  .company-row{display:flex; align-items:center; gap:16px;}
+  .company-logo{width:64px; height:64px; border-radius:16px; object-fit:cover; background:var(--surface); border:1px solid var(--line);}
+  .company-logo-placeholder{width:64px; height:64px; border-radius:16px; background:var(--surface); border:1px solid var(--line); display:flex; align-items:center; justify-content:center;}
+  h1{font-size:clamp(26px,4vw,38px); font-weight:700;}
+  .sub{color:var(--muted); margin-top:6px; font-size:15px;}
+
+  main{max-width:1200px; margin:0 auto; padding:2vw 6vw 8vw;}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:20px; margin-top:30px;}
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:20px;
+    overflow:hidden; transition:transform .2s ease, border-color .2s ease;
+  }
+  .card:hover{transform:translateY(-4px); border-color:#00D4FF55;}
+  .card img{width:100%; height:190px; object-fit:cover; display:block; background:var(--surface-2);}
+  .card .ph{width:100%; height:190px; display:flex; align-items:center; justify-content:center; background:var(--surface-2);}
+  .card-body{padding:18px 20px;}
+  .card h3{font-size:17px; font-weight:700;}
+  .card .meta{color:var(--muted); font-size:13px; margin-top:4px;}
+  .card .price{color:var(--cyan); font-weight:700; font-size:15px; margin-top:12px;}
+  .card .price span{color:var(--muted); font-weight:400; font-size:12px;}
+  .card .cta{
+    display:block; text-align:center; margin-top:14px; padding:11px; border-radius:10px;
+    background:var(--cyan); color:#04121A; font-weight:700; font-size:14px;
+  }
+
+  .empty, .loading, .error{
+    text-align:center; padding:80px 20px; color:var(--muted);
+  }
+  .spinner{
+    width:28px; height:28px; border:3px solid var(--line); border-top-color:var(--cyan);
+    border-radius:50%; margin:0 auto 16px; animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="/">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="1.6"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    ZENDA
+  </a>
+  <div class="lang-toggle">
+    <button id="btn-es" onclick="setLang('es')">ES</button>
+    <button id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+</nav>
+
+<header id="header" style="display:none;">
+  <div class="company-row">
+    <img id="company-logo" class="company-logo" style="display:none;">
+    <div id="company-logo-ph" class="company-logo-placeholder">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="21"/><path d="M5 12a7 7 0 0 0 7 9 7 7 0 0 0 7-9"/></svg>
+    </div>
+    <div>
+      <h1 id="company-name">Flota</h1>
+      <p class="sub" id="company-count"></p>
+      <p class="sub" id="company-description" style="display:none; margin-top:4px;"></p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="loading" class="loading"><div class="spinner"></div>Cargando flota...</div>
+  <div id="error" class="error" style="display:none;">No se encontró esta flota.</div>
+  <div id="empty" class="empty" style="display:none;">Esta flota todavía no tiene yates publicados.</div>
+  <div id="grid" class="grid"></div>
+</main>
+
+<script>
+  const SUPABASE_URL = 'https://bwbytdevgxywwzglyiri.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_ePnGY7Nr8fXx02Zmhy-nuw_rMfJN1GO';
+
+  const T = {
+    es: {
+      loading: 'Cargando flota...',
+      error: 'No se encontró esta flota.',
+      empty: 'Esta flota todavía no tiene yates publicados.',
+      companyDefault: 'Flota',
+      titleSuffix: 'Flota de yates',
+      countZero: '0 yates disponibles',
+      countOne: '1 yate disponible',
+      countMany: (n) => `${n} yates disponibles`,
+      personas: 'personas',
+      hora: '/hora',
+      cta: 'Ver y Reservar',
+    },
+    en: {
+      loading: 'Loading fleet...',
+      error: 'This fleet could not be found.',
+      empty: 'This fleet has no yachts published yet.',
+      companyDefault: 'Fleet',
+      titleSuffix: 'Yacht Fleet',
+      countZero: '0 yachts available',
+      countOne: '1 yacht available',
+      countMany: (n) => `${n} yachts available`,
+      personas: 'people',
+      hora: '/hour',
+      cta: 'View & Book',
+    }
+  };
+
+  let currentLang = localStorage.getItem('zenda_lang') || 'es';
+  let LAST_BOATS = null;
+  let LAST_COMPANY = null;
+  let LAST_STATE = 'loading'; // 'loading' | 'error' | 'empty' | 'ok'
+
+  function t(key, ...args){
+    const val = T[currentLang][key];
+    return typeof val === 'function' ? val(...args) : val;
+  }
+
+  function setLang(lang){
+    currentLang = lang;
+    localStorage.setItem('zenda_lang', lang);
+    document.getElementById('btn-es').classList.toggle('active', lang === 'es');
+    document.getElementById('btn-en').classList.toggle('active', lang === 'en');
+    document.documentElement.lang = lang;
+    renderPage();
+  }
+
+  function getSlugFromPath(){
+    const parts = window.location.pathname.split('/').filter(Boolean);
+    const idx = parts.indexOf('flota');
+    return idx >= 0 ? parts[idx + 1] : null;
+  }
+
+  async function api(path){
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    return res.json();
+  }
+
+  // ---- Caché con sessionStorage ----
+  async function cachedApi(path, ttlSeconds){
+    const cacheKey = 'zenda_cache_' + path;
+    try{
+      const cached = sessionStorage.getItem(cacheKey);
+      if(cached){
+        const parsed = JSON.parse(cached);
+        if((Date.now() - parsed.ts) / 1000 < ttlSeconds) return parsed.data;
+      }
+    }catch(e){}
+    const data = await api(path);
+    try{ sessionStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data })); }catch(e){}
+    return data;
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+
+  // Vuelve a pintar la pantalla completa usando los últimos datos cargados
+  // (LAST_STATE/LAST_BOATS/LAST_COMPANY) y el idioma actual — sin volver
+  // a consultar Supabase. Así el botón ES/EN es instantáneo.
+  function renderPage(){
+    document.getElementById('loading').textContent = t('loading');
+    document.getElementById('error').textContent = t('error');
+    document.getElementById('empty').textContent = t('empty');
+
+    if(LAST_STATE === 'loading'){
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('error').style.display = 'none';
+      document.getElementById('header').style.display = 'none';
+      document.getElementById('empty').style.display = 'none';
+      return;
+    }
+    if(LAST_STATE === 'error'){
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+      return;
+    }
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('header').style.display = 'block';
+    document.title = `${LAST_COMPANY.yacht_business_name || t('companyDefault')} — ${t('titleSuffix')} | Zenda`;
+    document.getElementById('company-name').textContent = LAST_COMPANY.yacht_business_name || t('companyDefault');
+    if(LAST_COMPANY.yacht_description){
+      document.getElementById('company-description').textContent = LAST_COMPANY.yacht_description;
+      document.getElementById('company-description').style.display = 'block';
+    }
+    if(LAST_COMPANY.yacht_logo_url){
+      const img = document.getElementById('company-logo');
+      img.src = LAST_COMPANY.yacht_logo_url;
+      img.style.display = 'block';
+      document.getElementById('company-logo-ph').style.display = 'none';
+    }
+
+    if(LAST_STATE === 'empty'){
+      document.getElementById('company-count').textContent = t('countZero');
+      document.getElementById('empty').style.display = 'block';
+      document.getElementById('grid').innerHTML = '';
+      return;
+    }
+
+    document.getElementById('empty').style.display = 'none';
+    const boats = LAST_BOATS;
+    document.getElementById('company-count').textContent = boats.length === 1 ? t('countOne') : t('countMany', boats.length);
+
+    const grid = document.getElementById('grid');
+    grid.innerHTML = boats.map(b => {
+      const a = b.atributos_json || {};
+      const nombreBote = a.nombre_bote || b.nombre;
+      const marcaModelo = a.marca_modelo || '';
+      const foto = (a.fotos && a.fotos[0]) || null;
+      const boatSlug = b.slug || b.id;
+      return `
+        <a class="card" href="/bote/${encodeURIComponent(boatSlug)}">
+          ${foto
+            ? `<img src="${escapeHtml(foto)}" alt="${escapeHtml(nombreBote)}">`
+            : `<div class="ph"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.8"><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="21"/><path d="M5 12a7 7 0 0 0 7 9 7 7 0 0 0 7-9"/></svg></div>`
+          }
+          <div class="card-body">
+            <h3>${escapeHtml(nombreBote)}</h3>
+            ${marcaModelo ? `<div class="meta">${escapeHtml(marcaModelo)}</div>` : ''}
+            <div class="meta">${a.capacidad ? a.capacidad + ' ' + t('personas') : ''}</div>
+            <div class="price">$${b.precio_base}<span>${t('hora')}</span></div>
+            <div class="cta">${t('cta')}</div>
+          </div>
+        </a>
+      `;
+    }).join('');
+  }
+
+  async function cargar(){
+    document.getElementById('btn-es').classList.toggle('active', currentLang === 'es');
+    document.getElementById('btn-en').classList.toggle('active', currentLang === 'en');
+    document.getElementById('loading').textContent = t('loading');
+    document.getElementById('error').textContent = t('error');
+    document.getElementById('empty').textContent = t('empty');
+
+    const slug = getSlugFromPath();
+    if(!slug){
+      LAST_STATE = 'error';
+      renderPage();
+      return;
+    }
+    try{
+      const boats = await cachedApi(`services?companies.company_slug=eq.${encodeURIComponent(slug)}&type=eq.yacht&activo=eq.true&select=*,companies!inner(id,yacht_business_name,yacht_logo_url,yacht_description)&order=created_at.desc`, 120);
+
+      if(!boats || !boats.length){
+        const companyCheck = await cachedApi(`companies?company_slug=eq.${encodeURIComponent(slug)}&select=id,yacht_business_name,yacht_logo_url,yacht_description`, 300);
+        if(!companyCheck || !companyCheck.length){
+          LAST_STATE = 'error';
+          renderPage();
+          return;
+        }
+        LAST_STATE = 'empty';
+        LAST_COMPANY = companyCheck[0];
+        renderPage();
+        return;
+      }
+
+      LAST_STATE = 'ok';
+      LAST_BOATS = boats;
+      LAST_COMPANY = boats[0].companies;
+      renderPage();
+    }catch(e){
+      LAST_STATE = 'error';
+      renderPage();
+    }
+  }
+  cargar();
+</script>
+
+</body>
+</html>

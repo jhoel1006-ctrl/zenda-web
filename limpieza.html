@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Limpieza — Zenda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0C10; --surface:#12151B; --surface-2:#171B22; --line:#212630;
+    --cyan:#00D4FF; --cyan-dim:#00D4FF22; --gold:#FFD166; --text:#F2F5F8; --muted:#8A94A6;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:'Manrope', sans-serif; min-height:100vh;}
+  h1,h2,h3{font-family:'Space Grotesk', sans-serif; letter-spacing:-0.02em;}
+  a{color:inherit; text-decoration:none;}
+
+  nav{display:flex; align-items:center; justify-content:space-between; padding:22px 6vw; border-bottom:1px solid var(--line);}
+  .logo{display:flex; align-items:center; gap:10px; font-weight:800; font-size:20px;}
+  .lang-toggle{display:flex; align-items:center; background:var(--surface); border:1px solid var(--line); border-radius:100px; padding:4px;}
+  .lang-toggle button{border:none; background:transparent; color:var(--muted); font-family:'Manrope', sans-serif; font-weight:700; font-size:12px; padding:6px 12px; border-radius:100px; cursor:pointer;}
+  .lang-toggle button.active{background:var(--cyan); color:#04121A;}
+
+  header{padding:5vw 6vw 2vw; max-width:1100px; margin:0 auto;}
+  .company-row{display:flex; align-items:center; gap:16px;}
+  .company-logo{width:60px; height:60px; border-radius:14px; object-fit:cover; background:var(--surface); border:1px solid var(--line);}
+  .company-logo-ph{width:60px; height:60px; border-radius:14px; background:var(--surface); border:1px solid var(--line); display:flex; align-items:center; justify-content:center;}
+  h1{font-size:clamp(24px,3.6vw,32px); font-weight:700;}
+  .sub{color:var(--muted); margin-top:4px; font-size:14px;}
+
+  main{max-width:1100px; margin:0 auto; padding:2vw 6vw 8vw;}
+
+  .section-title{font-size:13px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:12px; margin-top:28px;}
+  .section-title:first-child{margin-top:0;}
+
+  .size-grid{display:flex; flex-direction:column; gap:10px;}
+  .size-card{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    padding:16px 18px; cursor:pointer; transition:border-color .15s ease;
+  }
+  .size-card.selected{border-color:var(--cyan); background:var(--cyan-dim);}
+  .size-left{display:flex; align-items:center; gap:12px;}
+  .size-radio{width:20px; height:20px; border-radius:50%; border:2px solid var(--line); flex-shrink:0; display:flex; align-items:center; justify-content:center;}
+  .size-card.selected .size-radio{border-color:var(--cyan);}
+  .size-radio-dot{width:10px; height:10px; border-radius:50%; background:var(--cyan); display:none;}
+  .size-card.selected .size-radio-dot{display:block;}
+  .size-name{font-size:15px; font-weight:700;}
+  .size-time{font-size:12px; color:var(--muted); margin-top:2px;}
+  .size-price{font-size:16px; font-weight:700; font-family:'Space Grotesk'; color:var(--cyan); white-space:nowrap;}
+  .popular-badge{
+    display:inline-block; font-size:10px; font-weight:700; color:var(--gold);
+    background:rgba(255,209,102,0.12); padding:3px 8px; border-radius:100px; margin-left:8px; vertical-align:middle;
+  }
+
+  .addon-grid{display:flex; flex-direction:column; gap:10px;}
+  .addon-card{
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    padding:14px 18px; cursor:pointer;
+  }
+  .addon-card.selected{border-color:var(--cyan);}
+  .addon-left{display:flex; align-items:center; gap:12px;}
+  .addon-check{width:20px; height:20px; border-radius:6px; border:2px solid var(--line); flex-shrink:0; display:flex; align-items:center; justify-content:center;}
+  .addon-card.selected .addon-check{border-color:var(--cyan); background:var(--cyan);}
+  .addon-name{font-size:14px; font-weight:600;}
+  .addon-price{font-size:14px; font-weight:700; color:var(--text);}
+
+  .summary-bar{
+    position:sticky; bottom:0; margin-top:28px; background:var(--surface); border:1px solid var(--line);
+    border-radius:16px; padding:16px 20px; display:flex; align-items:center; justify-content:space-between;
+    box-shadow:0 -10px 30px -10px #000000aa;
+  }
+  .summary-bar .lbl{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; font-weight:700;}
+  .summary-bar .amt{font-size:24px; font-weight:700; font-family:'Space Grotesk'; margin-top:2px;}
+  .btn-reservar-bar{
+    background:var(--cyan); color:#04121A; font-weight:700; font-size:14px;
+    padding:14px 24px; border-radius:12px; border:none; cursor:pointer;
+  }
+  .btn-reservar-bar:disabled{opacity:0.5; cursor:not-allowed;}
+
+  .loading, .error, .empty{text-align:center; padding:80px 20px; color:var(--muted);}
+  .spinner{width:28px; height:28px; border:3px solid var(--line); border-top-color:var(--cyan); border-radius:50%; margin:0 auto 16px; animation:spin 0.8s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .modal-overlay{display:none; position:fixed; inset:0; background:#000000cc; z-index:100; align-items:flex-end; justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal-box{background:var(--bg); width:100%; max-width:520px; max-height:90vh; overflow-y:auto; border-radius:24px 24px 0 0; padding:26px 24px 34px; border-top:1px solid var(--line);}
+  @media (min-width:560px){ .modal-overlay{align-items:center;} .modal-box{border-radius:24px; max-height:85vh;} }
+  .modal-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;}
+  .modal-header h2{font-size:19px;}
+  .modal-close{background:var(--surface); border:1px solid var(--line); border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--text);}
+  .field-label{font-size:13px; font-weight:700; color:var(--muted); margin:16px 0 8px;}
+  .field-label:first-child{margin-top:0;}
+  .text-input{width:100%; background:var(--surface); border:1px solid var(--line); color:var(--text); padding:14px 16px; border-radius:10px; font-size:15px; font-family:'Manrope';}
+  .text-input:focus{outline:none; border-color:var(--cyan);}
+  .summary-box{background:var(--surface); border-radius:14px; padding:18px; margin-top:20px; text-align:center;}
+  .summary-box .lbl{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; font-weight:700;}
+  .summary-box .amt{font-size:28px; font-weight:700; font-family:'Space Grotesk'; margin-top:4px;}
+  .summary-box .det{font-size:13px; color:var(--muted); margin-top:4px;}
+  .btn-confirm{width:100%; background:var(--cyan); color:#04121A; font-weight:700; font-size:15px; padding:16px; border-radius:12px; margin-top:20px; border:none; cursor:pointer;}
+  .btn-confirm:disabled{opacity:0.5; cursor:not-allowed;}
+  .form-error{color:#FF3B30; font-size:13px; margin-top:10px; text-align:center;}
+  .confirm-screen{text-align:center; padding:20px 0;}
+  .confirm-icon{width:60px; height:60px; border-radius:50%; background:var(--cyan-dim); display:flex; align-items:center; justify-content:center; margin:0 auto 18px;}
+  .confirm-screen h2{font-size:22px; margin-bottom:8px;}
+  .confirm-screen p{color:var(--muted); font-size:14px; line-height:1.6;}
+  .deposit-box{background:var(--surface-2); border-radius:12px; padding:14px 16px; margin-top:16px; font-size:13px; color:var(--muted); line-height:1.5; text-align:left;}
+  .deposit-box b{color:var(--gold);}
+
+  .cal-box{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:14px;}
+  .cal-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .cal-header button{background:none; border:none; color:var(--cyan); font-size:20px; font-weight:700; cursor:pointer; padding:4px 10px;}
+  .cal-header span{font-weight:700; font-size:14px;}
+  .cal-dow{display:flex; margin-bottom:4px;}
+  .cal-dow div{flex:1; text-align:center; color:var(--muted); font-size:11px; font-weight:700;}
+  .cal-grid{display:flex; flex-wrap:wrap;}
+  .cal-day{width:14.28%; height:38px; display:flex; align-items:center; justify-content:center;}
+  .cal-day button{width:30px; height:30px; border-radius:50%; border:none; background:none; color:var(--text); font-size:13px; cursor:pointer; font-family:'Manrope';}
+  .cal-day button.occupied{color:#FF3B30; text-decoration:line-through; cursor:not-allowed;}
+  .cal-day button.past{color:#333; cursor:not-allowed;}
+  .cal-day button.selected{background:var(--cyan); color:#04121A; font-weight:700;}
+  .cal-legend{display:flex; gap:16px; justify-content:center; margin-top:10px; font-size:11px; color:var(--muted);}
+  .cal-legend span{display:flex; align-items:center; gap:5px;}
+  .legend-dot{width:8px; height:8px; border-radius:50%;}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="/">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="1.6"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    ZENDA
+  </a>
+  <div class="lang-toggle">
+    <button id="btn-es" onclick="setLang('es')">ES</button>
+    <button id="btn-en" onclick="setLang('en')">EN</button>
+  </div>
+</nav>
+
+<header id="header" style="display:none;">
+  <div class="company-row">
+    <img id="company-logo" class="company-logo" style="display:none;">
+    <div id="company-logo-ph" class="company-logo-ph">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><path d="M12 2l1.8 5.4L19 9l-5.2 1.6L12 16l-1.8-5.4L5 9l5.2-1.6L12 2Z"/></svg>
+    </div>
+    <div>
+      <h1 id="company-name">Limpieza</h1>
+      <p class="sub" id="company-sub">Limpieza residencial a domicilio</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="loading" class="loading"><div class="spinner"></div><span id="loading-text">Cargando...</span></div>
+  <div id="error" class="error" style="display:none;"><span id="error-text">No se encontró este proveedor.</span></div>
+
+  <div id="content" style="display:none;">
+    <div class="section-title" id="title-tamano">Elige el tamaño de tu apartamento</div>
+    <div class="size-grid" id="size-grid"></div>
+
+    <div id="addons-section" style="display:none;">
+      <div class="section-title" id="title-addons">Add-ons opcionales</div>
+      <div class="addon-grid" id="addon-grid"></div>
+    </div>
+
+    <div class="summary-bar">
+      <div>
+        <div class="lbl" id="summary-lbl">TOTAL</div>
+        <div class="amt" id="summary-amt">$0</div>
+      </div>
+      <button class="btn-reservar-bar" id="btn-reservar" disabled>Reservar</button>
+    </div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box" id="modal-box"></div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://bwbytdevgxywwzglyiri.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_ePnGY7Nr8fXx02Zmhy-nuw_rMfJN1GO';
+
+  const T = {
+    es: {
+      loading: 'Cargando...',
+      error: 'No se encontró este proveedor.',
+      subHeader: 'Limpieza residencial a domicilio',
+      titleTamano: 'Elige el tamaño de tu apartamento',
+      titleAddons: 'Add-ons opcionales',
+      masPedido: 'Más pedido',
+      total: 'TOTAL',
+      reservar: 'Reservar',
+      fecha: 'Fecha',
+      hora: 'Hora',
+      elegirFechaPrimero: 'Elige una fecha primero',
+      buscandoHoras: 'Buscando horas disponibles...',
+      direccion: 'Dirección donde recibirás el servicio',
+      direccionPlaceholder: 'Calle, número, ciudad',
+      zip: 'Código postal',
+      tuNombre: 'Tu nombre',
+      nombreCompleto: 'Nombre completo',
+      tuTelefono: 'Tu teléfono',
+      tuCorreo: 'Tu correo',
+      confirmarReserva: 'Confirmar reserva',
+      confirmando: 'Confirmando...',
+      noHorasDisponibles: 'No hay horas disponibles ese día',
+      duraHint: (h) => `(dura ~${h}h)`,
+      errFecha: 'Elige una fecha',
+      errHora: 'Elige una hora disponible',
+      errDireccion: 'Ingresa la dirección',
+      errZip: 'Ingresa tu código postal',
+      errZipFuera: (zip, zonas) => `Este proveedor no cubre el código postal ${zip}. Zonas disponibles: ${zonas}`,
+      errNombre: 'Ingresa tu nombre',
+      errTelefono: 'Ingresa tu teléfono',
+      errCorreo: 'Ingresa un correo válido',
+      errGenerico: 'Ocurrió un error, intenta de nuevo.',
+      depositoTexto: (m) => `Depósito de <b>$${m}</b> para confirmar tu lugar. El resto se paga directo al proveedor.`,
+      pagarDeposito: 'Pagar depósito ahora',
+      reservaEnviadaTitulo: 'Reserva enviada',
+      reservaEnviadaTexto: 'El proveedor confirmará tu reserva pronto.',
+      cerrar: 'Cerrar',
+      seleccionado: 'Seleccionado',
+      ocupado: 'Sin cupo',
+      dow: ['D','L','M','M','J','V','S'],
+      locale: 'es-US',
+    },
+    en: {
+      loading: 'Loading...',
+      error: 'This provider could not be found.',
+      subHeader: 'Mobile home cleaning',
+      titleTamano: 'Choose your apartment size',
+      titleAddons: 'Optional add-ons',
+      masPedido: 'Most popular',
+      total: 'TOTAL',
+      reservar: 'Book now',
+      fecha: 'Date',
+      hora: 'Time',
+      elegirFechaPrimero: 'Choose a date first',
+      buscandoHoras: 'Looking for available times...',
+      direccion: 'Address where you will receive the service',
+      direccionPlaceholder: 'Street, number, city',
+      zip: 'Zip code',
+      tuNombre: 'Your name',
+      nombreCompleto: 'Full name',
+      tuTelefono: 'Your phone',
+      tuCorreo: 'Your email',
+      confirmarReserva: 'Confirm booking',
+      confirmando: 'Confirming...',
+      noHorasDisponibles: 'No available times that day',
+      duraHint: (h) => `(~${h}h long)`,
+      errFecha: 'Choose a date',
+      errHora: 'Choose an available time',
+      errDireccion: 'Enter the address',
+      errZip: 'Enter your zip code',
+      errZipFuera: (zip, zonas) => `This provider does not cover zip code ${zip}. Available areas: ${zonas}`,
+      errNombre: 'Enter your name',
+      errTelefono: 'Enter your phone number',
+      errCorreo: 'Enter a valid email',
+      errGenerico: 'Something went wrong, please try again.',
+      depositoTexto: (m) => `A <b>$${m}</b> deposit is required to confirm your spot. The rest is paid directly to the provider.`,
+      pagarDeposito: 'Pay deposit now',
+      reservaEnviadaTitulo: 'Booking sent',
+      reservaEnviadaTexto: 'The provider will confirm your booking soon.',
+      cerrar: 'Close',
+      seleccionado: 'Selected',
+      ocupado: 'Fully booked',
+      dow: ['S','M','T','W','T','F','S'],
+      locale: 'en-US',
+    }
+  };
+
+  let currentLang = localStorage.getItem('zenda_lang') || 'es';
+  function t(key, ...args){
+    const val = T[currentLang][key];
+    return typeof val === 'function' ? val(...args) : val;
+  }
+
+  function aplicarTraduccionesEstaticas(){
+    document.getElementById('btn-es').classList.toggle('active', currentLang === 'es');
+    document.getElementById('btn-en').classList.toggle('active', currentLang === 'en');
+    document.documentElement.lang = currentLang;
+    document.getElementById('loading-text').textContent = t('loading');
+    document.getElementById('error-text').textContent = t('error');
+    if(!COMPANY) document.getElementById('company-sub').textContent = t('subHeader');
+    document.getElementById('title-tamano').textContent = t('titleTamano');
+    document.getElementById('title-addons').textContent = t('titleAddons');
+    document.getElementById('summary-lbl').textContent = t('total');
+    document.getElementById('btn-reservar').textContent = t('reservar');
+  }
+
+  function setLang(lang){
+    currentLang = lang;
+    localStorage.setItem('zenda_lang', lang);
+    aplicarTraduccionesEstaticas();
+    if(SERVICIO) { renderTamanos(); renderAddons(); actualizarResumenPagina(); }
+    if(document.getElementById('modal-overlay').classList.contains('open')){
+      renderModalReserva();
+      renderCalendarLP();
+      if(bookingState.fecha) actualizarHorasDisponibles();
+    }
+  }
+
+  const TAMANOS_LIMPIEZA = [
+    { key: 'studio', label: 'Studio' },
+    { key: '1br', label: '1 Habitación' },
+    { key: '2br', label: '2 Habitaciones' },
+    { key: '3br', label: '3+ Habitaciones' },
+  ];
+
+  function getSlugFromPath(){
+    const parts = window.location.pathname.split('/').filter(Boolean);
+    const idx = parts.indexOf('limpieza');
+    return idx >= 0 ? parts[idx + 1] : null;
+  }
+
+  async function api(path){
+    const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    return res.json();
+  }
+
+  async function cachedApi(path, ttlSeconds){
+    const cacheKey = 'zenda_cache_' + path;
+    try{
+      const cached = sessionStorage.getItem(cacheKey);
+      if(cached){
+        const parsed = JSON.parse(cached);
+        if((Date.now() - parsed.ts) / 1000 < ttlSeconds) return parsed.data;
+      }
+    }catch(e){}
+    const data = await api(path);
+    try{ sessionStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data })); }catch(e){}
+    return data;
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+
+  let SERVICIO = null;
+  let COMPANY = null;
+  let TAMANO_ELEGIDO = null;
+  const ADDONS_ELEGIDOS = new Set();
+
+  async function cargar(){
+    aplicarTraduccionesEstaticas();
+    const slug = getSlugFromPath();
+    if(!slug){
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+      return;
+    }
+    try{
+      const query = 'services?companies.limpieza_slug=eq.' + encodeURIComponent(slug) + '&type=eq.cleaning&activo=eq.true&select=*,companies!inner(id,limpieza_business_name,limpieza_logo_url,limpieza_description,limpieza_deposit_type,limpieza_deposit_value,limpieza_stripe_link)';
+      const services = await cachedApi(query, 120);
+      if(!services || !services.length){
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error').style.display = 'block';
+        return;
+      }
+      SERVICIO = services[0];
+      COMPANY = SERVICIO.companies;
+
+      document.title = COMPANY.limpieza_business_name + ' — Limpieza | Zenda';
+      document.getElementById('company-name').textContent = COMPANY.limpieza_business_name;
+      document.getElementById('company-sub').textContent = COMPANY.limpieza_description || t('subHeader');
+      if(COMPANY.limpieza_logo_url){
+        const img = document.getElementById('company-logo');
+        img.src = COMPANY.limpieza_logo_url;
+        img.style.display = 'block';
+        document.getElementById('company-logo-ph').style.display = 'none';
+      }
+
+      renderTamanos();
+      renderAddons();
+      actualizarResumenPagina();
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('header').style.display = 'block';
+      document.getElementById('content').style.display = 'block';
+
+      document.getElementById('btn-reservar').addEventListener('click', abrirReserva);
+    }catch(e){
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+    }
+  }
+  cargar();
+
+  function renderTamanos(){
+    const a = SERVICIO.atributos_json || {};
+    const activos = a.tamanos_activos || [];
+    const grid = document.getElementById('size-grid');
+    grid.innerHTML = TAMANOS_LIMPIEZA.filter(function(tm){ return activos.indexOf(tm.key) !== -1; }).map(function(tm){
+      const precio = a.tamanos_precio ? a.tamanos_precio[tm.key] : null;
+      const duracion = a.tamanos_duracion ? a.tamanos_duracion[tm.key] : null;
+      const horas = duracion ? Math.round(duracion/60*10)/10 : null;
+      const esPopular = a.popular === tm.key;
+      const seleccionado = TAMANO_ELEGIDO === tm.key;
+      return '' +
+        '<div class="size-card ' + (seleccionado ? 'selected' : '') + '" onclick="elegirTamano(\'' + tm.key + '\')">' +
+          '<div class="size-left">' +
+            '<div class="size-radio"><div class="size-radio-dot"></div></div>' +
+            '<div>' +
+              '<div class="size-name">' + tm.label + (esPopular ? '<span class="popular-badge">' + t('masPedido') + '</span>' : '') + '</div>' +
+              (horas ? '<div class="size-time">~' + horas + 'h</div>' : '') +
+            '</div>' +
+          '</div>' +
+          '<div class="size-price">$' + (precio != null ? precio : '-') + '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function elegirTamano(key){
+    TAMANO_ELEGIDO = key;
+    renderTamanos();
+    actualizarResumenPagina();
+  }
+
+  function renderAddons(){
+    const a = SERVICIO.atributos_json || {};
+    const addons = (a.addons || []).filter(function(ad){ return ad.activo; });
+    const section = document.getElementById('addons-section');
+    if(addons.length === 0){ section.style.display = 'none'; return; }
+    section.style.display = 'block';
+    const grid = document.getElementById('addon-grid');
+    grid.innerHTML = addons.map(function(ad){
+      const seleccionado = ADDONS_ELEGIDOS.has(ad.key);
+      return '' +
+        '<div class="addon-card ' + (seleccionado ? 'selected' : '') + '" onclick="toggleAddon(\'' + ad.key + '\')">' +
+          '<div class="addon-left">' +
+            '<div class="addon-check">' + (seleccionado ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#04121A" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : '') + '</div>' +
+            '<div class="addon-name">' + escapeHtml(ad.label) + '</div>' +
+          '</div>' +
+          '<div class="addon-price">+$' + ad.precio + '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  function toggleAddon(key){
+    if(ADDONS_ELEGIDOS.has(key)) ADDONS_ELEGIDOS.delete(key); else ADDONS_ELEGIDOS.add(key);
+    renderAddons();
+    actualizarResumenPagina();
+  }
+
+  function calcularTotalYDuracion(){
+    const a = SERVICIO.atributos_json || {};
+    if(!TAMANO_ELEGIDO) return { total: 0, duracion: 0 };
+    let total = (a.tamanos_precio && a.tamanos_precio[TAMANO_ELEGIDO]) || 0;
+    let duracion = (a.tamanos_duracion && a.tamanos_duracion[TAMANO_ELEGIDO]) || 0;
+    (a.addons || []).forEach(function(ad){
+      if(ADDONS_ELEGIDOS.has(ad.key)){
+        total += ad.precio || 0;
+        duracion += ad.duracion_extra_min || 0;
+      }
+    });
+    return { total: total, duracion: duracion };
+  }
+
+  function actualizarResumenPagina(){
+    const r = calcularTotalYDuracion();
+    document.getElementById('summary-amt').textContent = '$' + r.total.toFixed(2);
+    document.getElementById('btn-reservar').disabled = !TAMANO_ELEGIDO;
+  }
+
+  const bookingState = { nombre:'', telefono:'', email:'', direccion:'', zip:'', fecha:null, hora:'', mes: new Date() };
+  let OCUPADOS_MES = [];
+
+  function abrirReserva(){
+    if(!TAMANO_ELEGIDO) return;
+    bookingState.fecha = null;
+    bookingState.hora = '';
+    bookingState.mes = new Date();
+    document.getElementById('modal-overlay').classList.add('open');
+    renderModalReserva();
+    cargarOcupadosMesLP().then(renderCalendarLP);
+  }
+
+  function cerrarModal(){
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+
+  async function cargarOcupadosMesLP(){
+    const year = bookingState.mes.getFullYear();
+    const month = bookingState.mes.getMonth();
+    const inicioMes = new Date(year, month, 1).toISOString();
+    const finMes = new Date(year, month + 1, 0, 23, 59, 59).toISOString();
+    try{
+      const query = 'service_bookings?service_id=eq.' + SERVICIO.id + '&status=in.(Pendiente,Confirmado,Bloqueado)&fecha_hora=gte.' + inicioMes + '&fecha_hora=lte.' + finMes + '&select=fecha_hora,duracion_min';
+      const data = await api(query);
+      OCUPADOS_MES = (data || []).map(function(d){
+        const inicio = new Date(d.fecha_hora);
+        const dur = d.duracion_min || 60;
+        return { inicio: inicio, fin: new Date(inicio.getTime() + dur * 60000) };
+      });
+    }catch(e){
+      OCUPADOS_MES = [];
+    }
+  }
+
+  function diaSinCupoLP(dia){
+    const r = calcularTotalYDuracion();
+    const duracionMin = r.duracion || 120;
+    for(let h = 8; h < 18; h++){
+      for(const min of [0, 30]){
+        const inicioProp = new Date(dia); inicioProp.setHours(h, min, 0, 0);
+        const finProp = new Date(inicioProp.getTime() + duracionMin * 60000);
+        if(finProp.getHours() > 18 || (finProp.getHours() === 18 && finProp.getMinutes() > 0)) continue;
+        const seEncima = OCUPADOS_MES.some(function(o){ return inicioProp < o.fin && finProp > o.inicio; });
+        if(!seEncima) return false;
+      }
+    }
+    return true;
+  }
+
+  function generarDiasCalendarioLP(mesBase){
+    const year = mesBase.getFullYear();
+    const month = mesBase.getMonth();
+    const primerDia = new Date(year, month, 1);
+    const ultimoDia = new Date(year, month + 1, 0);
+    const dias = [];
+    for(let i = 0; i < primerDia.getDay(); i++) dias.push(null);
+    for(let d = 1; d <= ultimoDia.getDate(); d++) dias.push(new Date(year, month, d));
+    return dias;
+  }
+
+  function renderCalendarLP(){
+    const dias = generarDiasCalendarioLP(bookingState.mes);
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const mesNombre = bookingState.mes.toLocaleDateString(t('locale'), {month:'long', year:'numeric'});
+    let html = '' +
+      '<div class="cal-header">' +
+        '<button onclick="cambiarMesLP(-1)">‹</button>' +
+        '<span>' + mesNombre + '</span>' +
+        '<button onclick="cambiarMesLP(1)">›</button>' +
+      '</div>' +
+      '<div class="cal-dow">' + t('dow').map(function(d){ return '<div>' + d + '</div>'; }).join('') + '</div>' +
+      '<div class="cal-grid">';
+    dias.forEach(function(dia){
+      if(!dia){ html += '<div class="cal-day"></div>'; return; }
+      const esPasado = dia < hoy;
+      const sinCupo = !esPasado && diaSinCupoLP(dia);
+      const seleccionado = bookingState.fecha && dia.toDateString() === bookingState.fecha.toDateString();
+      const cls = seleccionado ? 'selected' : (esPasado ? 'past' : (sinCupo ? 'occupied' : ''));
+      const disabled = (esPasado || sinCupo) ? 'disabled' : '';
+      html += '<div class="cal-day"><button class="' + cls + '" ' + disabled + ' onclick="elegirFechaLP(' + dia.getTime() + ')">' + dia.getDate() + '</button></div>';
+    });
+    html += '</div>';
+    document.getElementById('cal-box').innerHTML = html;
+  }
+
+  function cambiarMesLP(delta){
+    bookingState.mes = new Date(bookingState.mes.getFullYear(), bookingState.mes.getMonth() + delta, 1);
+    cargarOcupadosMesLP().then(renderCalendarLP);
+  }
+
+  function elegirFechaLP(timestamp){
+    bookingState.fecha = new Date(timestamp);
+    bookingState.hora = '';
+    renderCalendarLP();
+    actualizarHorasDisponibles();
+  }
+
+  function renderModalReserva(){
+    const r = calcularTotalYDuracion();
+    const tamanoLabel = (TAMANOS_LIMPIEZA.find(function(x){ return x.key === TAMANO_ELEGIDO; }) || {}).label || '';
+    const addonsList = [];
+    ADDONS_ELEGIDOS.forEach(function(key){
+      const ad = (SERVICIO.atributos_json.addons || []).find(function(x){ return x.key === key; });
+      if(ad) addonsList.push(ad.label);
+    });
+    const addonsLabel = addonsList.join(', ');
+
+    const box = document.getElementById('modal-box');
+    box.innerHTML = '' +
+      '<div class="modal-header">' +
+        '<h2>' + escapeHtml(tamanoLabel) + '</h2>' +
+        '<button class="modal-close" onclick="cerrarModal()">✕</button>' +
+      '</div>' +
+      '<div class="field-label">' + t('fecha') + '</div>' +
+      '<div class="cal-box" id="cal-box"></div>' +
+      '<div class="cal-legend">' +
+        '<span><span class="legend-dot" style="background:#00D4FF"></span>' + t('seleccionado') + '</span>' +
+        '<span><span class="legend-dot" style="background:#FF3B30"></span>' + t('ocupado') + '</span>' +
+      '</div>' +
+      '<div class="field-label">' + t('hora') + ' <span id="hora-hint" style="color:var(--muted); font-weight:400; text-transform:none; letter-spacing:normal;"></span></div>' +
+      '<select class="text-input" id="input-hora" disabled><option>' + t('elegirFechaPrimero') + '</option></select>' +
+      '<div class="field-label">' + t('direccion') + '</div>' +
+      '<input class="text-input" id="input-direccion" placeholder="' + t('direccionPlaceholder') + '">' +
+      '<div class="field-label">' + t('zip') + '</div>' +
+      '<input class="text-input" id="input-zip" placeholder="Ej: 33165" inputmode="numeric">' +
+      '<div class="field-label">' + t('tuNombre') + '</div>' +
+      '<input class="text-input" id="input-nombre" placeholder="' + t('nombreCompleto') + '">' +
+      '<div class="field-label">' + t('tuTelefono') + '</div>' +
+      '<input class="text-input" id="input-telefono" placeholder="Ej: +1 786 555 1234">' +
+      '<div class="field-label">' + t('tuCorreo') + '</div>' +
+      '<input class="text-input" id="input-email" type="email" placeholder="tucorreo@ejemplo.com">' +
+      '<div class="summary-box">' +
+        '<div class="lbl">' + escapeHtml(tamanoLabel) + (addonsLabel ? ' + ' + escapeHtml(addonsLabel) : '') + '</div>' +
+        '<div class="amt">$' + r.total.toFixed(2) + '</div>' +
+        '<div class="det">~' + (Math.round(r.duracion/60*10)/10) + 'h</div>' +
+      '</div>' +
+      '<div id="form-error"></div>' +
+      '<button class="btn-confirm" id="btn-confirmar" onclick="confirmarReservaLP()">' + t('confirmarReserva') + '</button>';
+  }
+
+  async function actualizarHorasDisponibles(){
+    const horaSelect = document.getElementById('input-hora');
+    const hint = document.getElementById('hora-hint');
+    if(!bookingState.fecha){ return; }
+
+    horaSelect.disabled = true;
+    horaSelect.innerHTML = '<option>' + t('buscandoHoras') + '</option>';
+
+    const r = calcularTotalYDuracion();
+    const duracionMin = r.duracion || 120;
+    const dia = bookingState.fecha;
+
+    const HORA_APERTURA = 8;
+    const HORA_CIERRE = 18;
+    const opciones = [];
+    for(let h = HORA_APERTURA; h < HORA_CIERRE; h++){
+      for(const min of [0, 30]){
+        const inicioProp = new Date(dia); inicioProp.setHours(h, min, 0, 0);
+        const finProp = new Date(inicioProp.getTime() + duracionMin * 60000);
+        if(finProp.getHours() > HORA_CIERRE || (finProp.getHours() === HORA_CIERRE && finProp.getMinutes() > 0)) continue;
+
+        const seEncima = OCUPADOS_MES.some(function(o){ return inicioProp < o.fin && finProp > o.inicio; });
+        if(!seEncima){
+          const label = inicioProp.toLocaleTimeString(t('locale'), {hour:'numeric', minute:'2-digit'});
+          opciones.push({ value: h + ':' + (min===0?'00':min), label: label });
+        }
+      }
+    }
+
+    if(opciones.length === 0){
+      horaSelect.innerHTML = '<option value="">' + t('noHorasDisponibles') + '</option>';
+      horaSelect.disabled = true;
+      hint.textContent = '';
+    }else{
+      horaSelect.innerHTML = opciones.map(function(o){ return '<option value="' + o.value + '">' + o.label + '</option>'; }).join('');
+      horaSelect.disabled = false;
+      hint.textContent = t('duraHint', Math.round(duracionMin/60*10)/10);
+    }
+  }
+
+  async function confirmarReservaLP(){
+    bookingState.hora = document.getElementById('input-hora').value;
+    bookingState.direccion = document.getElementById('input-direccion').value.trim();
+    bookingState.zip = document.getElementById('input-zip').value.trim();
+    bookingState.nombre = document.getElementById('input-nombre').value.trim();
+    bookingState.telefono = document.getElementById('input-telefono').value.trim();
+    bookingState.email = document.getElementById('input-email').value.trim();
+
+    const errBox = document.getElementById('form-error');
+    errBox.innerHTML = '';
+    if(!bookingState.fecha){ errBox.innerHTML = '<div class="form-error">' + t('errFecha') + '</div>'; return; }
+    if(!bookingState.hora){ errBox.innerHTML = '<div class="form-error">' + t('errHora') + '</div>'; return; }
+    if(!bookingState.direccion){ errBox.innerHTML = '<div class="form-error">' + t('errDireccion') + '</div>'; return; }
+    if(!bookingState.zip){ errBox.innerHTML = '<div class="form-error">' + t('errZip') + '</div>'; return; }
+
+    if(COMPANY.limpieza_zipcodes && COMPANY.limpieza_zipcodes.trim()){
+      const zipsPermitidos = COMPANY.limpieza_zipcodes.split(',').map(function(z){ return z.trim(); }).filter(Boolean);
+      if(zipsPermitidos.length > 0 && zipsPermitidos.indexOf(bookingState.zip) === -1){
+        errBox.innerHTML = '<div class="form-error">' + t('errZipFuera', escapeHtml(bookingState.zip), escapeHtml(zipsPermitidos.join(', '))) + '</div>';
+        return;
+      }
+    }
+
+    if(!bookingState.nombre){ errBox.innerHTML = '<div class="form-error">' + t('errNombre') + '</div>'; return; }
+    if(!bookingState.telefono){ errBox.innerHTML = '<div class="form-error">' + t('errTelefono') + '</div>'; return; }
+    if(!bookingState.email || bookingState.email.indexOf('@') === -1){ errBox.innerHTML = '<div class="form-error">' + t('errCorreo') + '</div>'; return; }
+
+    const btn = document.getElementById('btn-confirmar');
+    btn.disabled = true;
+    btn.textContent = t('confirmando');
+
+    try{
+      const r = calcularTotalYDuracion();
+      const tamanoLabel = (TAMANOS_LIMPIEZA.find(function(x){ return x.key === TAMANO_ELEGIDO; }) || {}).label || '';
+      const addonsList = [];
+      ADDONS_ELEGIDOS.forEach(function(key){
+        const ad = (SERVICIO.atributos_json.addons || []).find(function(x){ return x.key === key; });
+        if(ad) addonsList.push(ad.label);
+      });
+      const addonsLabel = addonsList.join(', ');
+      const partes = bookingState.hora.split(':');
+      const hh = partes[0]; const mm = partes[1];
+      const fechaCompleta = new Date(bookingState.fecha);
+      fechaCompleta.setHours(parseInt(hh), parseInt(mm || 0), 0, 0);
+
+      const res = await fetch(SUPABASE_URL + '/rest/v1/service_bookings', {
+        method: 'POST',
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+        body: JSON.stringify({
+          service_id: SERVICIO.id,
+          client_id: null,
+          fecha_hora: fechaCompleta.toISOString(),
+          status: 'Pendiente',
+          direccion_o_marina: bookingState.direccion + ' (' + bookingState.zip + ')',
+          precio_total: r.total,
+          duracion_min: r.duracion,
+          notas: tamanoLabel + (addonsLabel ? ' + ' + addonsLabel : '') + ' · Reserva desde la web',
+          guest_name: bookingState.nombre,
+          guest_phone: bookingState.telefono,
+          guest_email: bookingState.email
+        })
+      });
+      if(!res.ok) throw new Error('No se pudo crear la reserva');
+
+      try{
+        const conductores = await api('conductors?id=eq.' + SERVICIO.provider_id + '&select=push_token');
+        const pushToken = conductores && conductores[0] && conductores[0].push_token;
+        if(pushToken){
+          await fetch('https://exp.host/--/api/v2/push/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ to: pushToken, title: 'Nueva Reserva de Limpieza (Web)', body: tamanoLabel + ' · $' + r.total + ' · ' + bookingState.nombre })
+          });
+        }
+      }catch(e){}
+
+      mostrarConfirmacionLP(r.total);
+    }catch(e){
+      errBox.innerHTML = '<div class="form-error">' + t('errGenerico') + '</div>';
+      btn.disabled = false;
+      btn.textContent = t('confirmarReserva');
+    }
+  }
+
+  function mostrarConfirmacionLP(total){
+    const box = document.getElementById('modal-box');
+    let depositoHtml = '';
+    if(COMPANY.limpieza_deposit_type && COMPANY.limpieza_deposit_type !== 'none' && COMPANY.limpieza_deposit_value){
+      const monto = COMPANY.limpieza_deposit_type === 'percent' ? (total * COMPANY.limpieza_deposit_value / 100).toFixed(2) : COMPANY.limpieza_deposit_value;
+      depositoHtml = '' +
+        '<div class="deposit-box">' + t('depositoTexto', monto) + '</div>' +
+        (COMPANY.limpieza_stripe_link ? '<a class="btn-confirm" style="display:block; text-align:center; text-decoration:none;" href="' + COMPANY.limpieza_stripe_link + '" target="_blank" rel="noopener">' + t('pagarDeposito') + '</a>' : '');
+    }
+    box.innerHTML = '' +
+      '<div class="confirm-screen">' +
+        '<div class="confirm-icon">' +
+          '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="8,12.5 10.5,15 16,9"/></svg>' +
+        '</div>' +
+        '<h2>' + t('reservaEnviadaTitulo') + '</h2>' +
+        '<p>' + t('reservaEnviadaTexto') + '</p>' +
+        depositoHtml +
+        '<button class="btn-confirm" style="background:transparent; border:1px solid var(--line); color:var(--text); margin-top:14px;" onclick="cerrarModal()">' + t('cerrar') + '</button>' +
+      '</div>';
+  }
+
+  document.getElementById('modal-overlay').addEventListener('click', function(e){
+    if(e.target === this) cerrarModal();
+  });
+</script>
+
+</body>
+</html>
