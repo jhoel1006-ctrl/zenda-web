@@ -1,28 +1,92 @@
 // netlify/functions/limpieza-meta.js
-export default async (request, context) => {
-  const url = new URL(request.url);
-  const slug = url.searchParams.get("slug") || url.pathname.split("/").pop();
+// Sirve /limpieza/:slug. Lee el limpieza.html real (sin tocarlo), le inyecta
+// meta tags Open Graph/Twitter con nombre y logo del proveedor de limpieza,
+// y devuelve el HTML completo.
 
-  let business = {
-    name: "Cleaning Services",
-    description: "Professional house & office cleaning in Miami. Book in 30 seconds with Zenda.",
-    image: "https://zenda-web.netlify.app/logo.png"
+const SUPABASE_URL = 'https://bwbytdevgxywwzglyiri.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_ePnGY7Nr8fXx02Zmhy-nuw_rMfJN1GO';
+const SITE_URL = 'https://zendaapp.app';
+const FALLBACK_IMAGE = `${SITE_URL}/og-default.jpg`;
+
+exports.handler = async (event) => {
+  const slug = event.queryStringParameters && event.queryStringParameters.slug;
+
+  const templateRes = await fetch(`${SITE_URL}/limpieza.html`);
+  let html = await templateRes.text();
+
+  if (!slug) {
+    return respond(html);
+  }
+
+  try {
+    const url =
+      `${SUPABASE_URL}/rest/v1/services?companies.limpieza_slug=eq.${encodeURIComponent(slug)}` +
+      `&type=eq.cleaning&activo=eq.true` +
+      `&select=*,companies!inner(id,limpieza_business_name,limpieza_logo_url,limpieza_description)`;
+
+    const res = await fetch(url, {
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+    });
+    const services = await res.json();
+
+    if (!services || !services.length) {
+      return respond(html); // proveedor no existe: HTML genérico, la página mostrará "No se encontró"
+    }
+
+    const company = services[0].companies;
+    const empresa = company.limpieza_business_name || 'Limpieza';
+    const image = company.limpieza_logo_url || FALLBACK_IMAGE;
+
+    const title = `${empresa} — Limpieza | Zenda`;
+    const description = company.limpieza_description
+      ? `${empresa} · ${company.limpieza_description}`
+      : `${empresa} · Limpieza residencial a domicilio. Reserva en línea en Zenda.`;
+    const pageUrl = `${SITE_URL}/limpieza/${encodeURIComponent(slug)}`;
+
+    html = injectMeta(html, { title, description, image, url: pageUrl });
+
+    html = html.replace(
+      '<h1 id="company-name">Limpieza</h1>',
+      `<h1 id="company-name">${escapeHtml(empresa)}</h1>`
+    );
+
+    return respond(html);
+  } catch (e) {
+    return respond(html);
+  }
+};
+
+function injectMeta(html, { title, description, image, url }) {
+  html = html.replace(/<title>.*?<\/title>/, `<title>${escapeHtml(title)}</title>`);
+
+  const metaTags = `
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="${escapeHtml(title)}">
+  <meta property="og:description" content="${escapeHtml(description)}">
+  <meta property="og:image" content="${image}">
+  <meta property="og:url" content="${url}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${escapeHtml(title)}">
+  <meta name="twitter:description" content="${escapeHtml(description)}">
+  <meta name="twitter:image" content="${image}">
+  <meta name="description" content="${escapeHtml(description)}">
+`;
+
+  return html.replace('</head>', `${metaTags}</head>`);
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function respond(html) {
+  return {
+    statusCode: 200,
+    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    body: html
   };
-
-  const html = await fetch(`${url.origin}/limpieza.html`).then(r => r.text());
-  
-  const withMeta = html
-    .replace(/<title>.*<\/title>/, `<title>${business.name} | Zenda</title>`)
-    .replace(/<meta property="og:title".*>/, `<meta property="og:title" content="${business.name}">`)
-    .replace(/<meta name="description".*>/, `<meta name="description" content="${business.description}">`)
-    .replace(/<meta property="og:description".*>/, `<meta property="og:description" content="${business.description}">`)
-    .replace(/<meta property="og:image".*>/, `<meta property="og:image" content="${business.image}">`);
-
-  return new Response(withMeta, {
-    headers: { "Content-Type": "text/html" }
-  });
-};
-
-export const config = {
-  path: "/limpieza/:slug"
-};
+}
