@@ -486,9 +486,8 @@
       // El teléfono del proveedor se busca en paralelo, sin bloquear la vista;
       // el botón de WhatsApp se activa apenas llegue la respuesta.
       const btnWa = document.getElementById('btn-wa');
-      api(`conductors?id=eq.${b.provider_id}&select=phone,full_name`).then(conductores => {
-        const conductorPhone = conductores && conductores[0] && conductores[0].phone;
-        window.ZENDA_CONDUCTOR_PHONE = conductorPhone || null;
+      fetch(`/.netlify/functions/get-provider-contact?provider_id=${b.provider_id}`).then(r => r.json()).then(data => {
+        window.ZENDA_CONDUCTOR_PHONE = data.phone || null;
         actualizarBotonWhatsapp();
       }).catch(() => {
         window.ZENDA_CONDUCTOR_PHONE = null;
