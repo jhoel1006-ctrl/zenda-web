@@ -719,9 +719,9 @@
         const conductores = await api('conductors?id=eq.' + SERVICIO.provider_id + '&select=push_token');
         const pushToken = conductores && conductores[0] && conductores[0].push_token;
         if(pushToken){
-          await fetch('https://exp.host/--/api/v2/push/send', {
+          await fetch('/.netlify/functions/send-push', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ to: pushToken, title: 'Nueva Reserva de Limpieza (Web)', body: tamanoLabel + ' · $' + r.total + ' · ' + bookingState.nombre })
           });
         }
