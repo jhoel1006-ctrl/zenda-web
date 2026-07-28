@@ -166,6 +166,20 @@
       <div class="addon-grid" id="addon-grid"></div>
     </div>
 
+    <div id="habitacion-extra-section" style="display:none;">
+      <div class="section-title">Habitaciones adicionales</div>
+      <div class="addon-card" style="cursor:default;">
+        <div class="addon-left">
+          <div class="addon-name" id="habitacion-extra-label">Habitación adicional</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:14px;">
+          <button onclick="cambiarHabitacionExtra(-1)" style="width:32px; height:32px; border-radius:50%; border:1px solid var(--line); background:var(--surface-2); color:var(--text); font-size:18px; font-weight:700; cursor:pointer;">−</button>
+          <span id="habitacion-extra-num" style="min-width:16px; text-align:center; font-weight:700;">0</span>
+          <button onclick="cambiarHabitacionExtra(1)" style="width:32px; height:32px; border-radius:50%; border:1px solid var(--line); background:var(--surface-2); color:var(--text); font-size:18px; font-weight:700; cursor:pointer;">+</button>
+        </div>
+      </div>
+    </div>
+
     <div class="summary-bar">
       <div>
         <div class="lbl" id="summary-lbl">TOTAL</div>
@@ -348,6 +362,7 @@
   let COMPANY = null;
   let TAMANO_ELEGIDO = null;
   const ADDONS_ELEGIDOS = new Set();
+  let HABITACIONES_EXTRA = 0;
 
   async function cargar(){
     aplicarTraduccionesEstaticas();
@@ -380,6 +395,7 @@
 
       renderTamanos();
       renderAddons();
+      renderHabitacionExtra();
       actualizarResumenPagina();
 
       document.getElementById('loading').style.display = 'none';
@@ -450,6 +466,22 @@
     actualizarResumenPagina();
   }
 
+  function renderHabitacionExtra(){
+    const a = SERVICIO.atributos_json || {};
+    const ha = a.habitacion_adicional;
+    const section = document.getElementById('habitacion-extra-section');
+    if(!ha || !ha.activo){ section.style.display = 'none'; return; }
+    section.style.display = 'block';
+    document.getElementById('habitacion-extra-label').textContent = 'Habitación adicional (+$' + ha.precio + ' c/u)';
+    document.getElementById('habitacion-extra-num').textContent = HABITACIONES_EXTRA;
+  }
+
+  function cambiarHabitacionExtra(delta){
+    HABITACIONES_EXTRA = Math.max(0, HABITACIONES_EXTRA + delta);
+    renderHabitacionExtra();
+    actualizarResumenPagina();
+  }
+
   function calcularTotalYDuracion(){
     const a = SERVICIO.atributos_json || {};
     if(!TAMANO_ELEGIDO) return { total: 0, duracion: 0 };
@@ -461,6 +493,10 @@
         duracion += ad.duracion_extra_min || 0;
       }
     });
+    if(a.habitacion_adicional && a.habitacion_adicional.activo){
+      total += (a.habitacion_adicional.precio || 0) * HABITACIONES_EXTRA;
+      duracion += (a.habitacion_adicional.duracion_extra_min || 0) * HABITACIONES_EXTRA;
+    }
     return { total: total, duracion: duracion };
   }
 
@@ -581,6 +617,7 @@
       const ad = (SERVICIO.atributos_json.addons || []).find(function(x){ return x.key === key; });
       if(ad) addonsList.push(ad.label);
     });
+    if(HABITACIONES_EXTRA > 0) addonsList.push('+' + HABITACIONES_EXTRA + ' habitación extra');
     const addonsLabel = addonsList.join(', ');
 
     const box = document.getElementById('modal-box');
@@ -699,6 +736,7 @@
         const ad = (SERVICIO.atributos_json.addons || []).find(function(x){ return x.key === key; });
         if(ad) addonsList.push(ad.label);
       });
+      if(HABITACIONES_EXTRA > 0) addonsList.push('+' + HABITACIONES_EXTRA + ' habitación extra');
       const addonsLabel = addonsList.join(', ');
       const partes = bookingState.hora.split(':');
       const hh = partes[0]; const mm = partes[1];
