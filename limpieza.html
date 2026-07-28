@@ -167,7 +167,7 @@
     </div>
 
     <div id="habitacion-extra-section" style="display:none;">
-      <div class="section-title">Habitaciones adicionales</div>
+      <div class="section-title" id="title-habitacion-extra">Habitaciones adicionales</div>
       <div class="addon-card" style="cursor:default;">
         <div class="addon-left">
           <div class="addon-name" id="habitacion-extra-label">Habitación adicional</div>
@@ -310,7 +310,7 @@
     currentLang = lang;
     localStorage.setItem('zenda_lang', lang);
     aplicarTraduccionesEstaticas();
-    if(SERVICIO) { renderTamanos(); renderAddons(); actualizarResumenPagina(); }
+    if(SERVICIO) { renderTamanos(); renderAddons(); renderHabitacionExtra(); actualizarResumenPagina(); }
     if(document.getElementById('modal-overlay').classList.contains('open')){
       renderModalReserva();
       renderCalendarLP();
@@ -319,11 +319,28 @@
   }
 
   const TAMANOS_LIMPIEZA = [
-    { key: 'studio', label: 'Studio' },
-    { key: '1br', label: '1 Habitación' },
-    { key: '2br', label: '2 Habitaciones' },
-    { key: '3br', label: '3+ Habitaciones' },
+    { key: 'studio', label: 'Studio', label_en: 'Studio' },
+    { key: '1br', label: '1 Habitación', label_en: '1 Bedroom' },
+    { key: '2br', label: '2 Habitaciones', label_en: '2 Bedrooms' },
+    { key: '3br', label: '3+ Habitaciones', label_en: '3+ Bedrooms' },
   ];
+
+  // Traduce las etiquetas de add-ons por su "key" — así no importa en qué
+  // idioma las haya guardado el proveedor, la página siempre las traduce.
+  const ADDON_LABELS_TRADUCIDOS = {
+    deep: { es: 'Deep Cleaning', en: 'Deep Cleaning' },
+    ventanas: { es: 'Ventanas', en: 'Windows' },
+    nevera: { es: 'Nevera por dentro', en: 'Fridge (inside)' },
+    piscina_bbq: { es: 'Área de piscina / BBQ', en: 'Pool / BBQ area' },
+  };
+  function labelAddon(ad){
+    const trad = ADDON_LABELS_TRADUCIDOS[ad.key];
+    if(trad) return currentLang === 'en' ? trad.en : trad.es;
+    return ad.label; // add-on futuro sin traducción registrada: usa el texto guardado
+  }
+  function labelTamano(tm){
+    return currentLang === 'en' ? tm.label_en : tm.label;
+  }
 
   function getSlugFromPath(){
     const parts = window.location.pathname.split('/').filter(Boolean);
@@ -425,7 +442,7 @@
           '<div class="size-left">' +
             '<div class="size-radio"><div class="size-radio-dot"></div></div>' +
             '<div>' +
-              '<div class="size-name">' + tm.label + (esPopular ? '<span class="popular-badge">' + t('masPedido') + '</span>' : '') + '</div>' +
+              '<div class="size-name">' + labelTamano(tm) + (esPopular ? '<span class="popular-badge">' + t('masPedido') + '</span>' : '') + '</div>' +
               (horas ? '<div class="size-time">~' + horas + 'h</div>' : '') +
             '</div>' +
           '</div>' +
@@ -453,7 +470,7 @@
         '<div class="addon-card ' + (seleccionado ? 'selected' : '') + '" onclick="toggleAddon(\'' + ad.key + '\')">' +
           '<div class="addon-left">' +
             '<div class="addon-check">' + (seleccionado ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#04121A" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>' : '') + '</div>' +
-            '<div class="addon-name">' + escapeHtml(ad.label) + '</div>' +
+            '<div class="addon-name">' + escapeHtml(labelAddon(ad)) + '</div>' +
           '</div>' +
           '<div class="addon-price">+$' + ad.precio + '</div>' +
         '</div>';
@@ -472,7 +489,8 @@
     const section = document.getElementById('habitacion-extra-section');
     if(!ha || !ha.activo){ section.style.display = 'none'; return; }
     section.style.display = 'block';
-    document.getElementById('habitacion-extra-label').textContent = 'Habitación adicional (+$' + ha.precio + ' c/u)';
+    document.getElementById('title-habitacion-extra').textContent = currentLang === 'en' ? 'Additional bedrooms' : 'Habitaciones adicionales';
+    document.getElementById('habitacion-extra-label').textContent = (currentLang === 'en' ? 'Extra bedroom (+$' : 'Habitación adicional (+$') + ha.precio + (currentLang === 'en' ? ' each)' : ' c/u)');
     document.getElementById('habitacion-extra-num').textContent = HABITACIONES_EXTRA;
   }
 
@@ -611,13 +629,14 @@
 
   function renderModalReserva(){
     const r = calcularTotalYDuracion();
-    const tamanoLabel = (TAMANOS_LIMPIEZA.find(function(x){ return x.key === TAMANO_ELEGIDO; }) || {}).label || '';
+    const tamanoObj = TAMANOS_LIMPIEZA.find(function(x){ return x.key === TAMANO_ELEGIDO; });
+    const tamanoLabel = tamanoObj ? labelTamano(tamanoObj) : '';
     const addonsList = [];
     ADDONS_ELEGIDOS.forEach(function(key){
       const ad = (SERVICIO.atributos_json.addons || []).find(function(x){ return x.key === key; });
-      if(ad) addonsList.push(ad.label);
+      if(ad) addonsList.push(labelAddon(ad));
     });
-    if(HABITACIONES_EXTRA > 0) addonsList.push('+' + HABITACIONES_EXTRA + ' habitación extra');
+    if(HABITACIONES_EXTRA > 0) addonsList.push('+' + HABITACIONES_EXTRA + (currentLang === 'en' ? ' extra bedroom' : ' habitación extra'));
     const addonsLabel = addonsList.join(', ');
 
     const box = document.getElementById('modal-box');
