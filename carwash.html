@@ -26,8 +26,8 @@
 
   header{padding:5vw 6vw 2vw; max-width:1100px; margin:0 auto;}
   .company-row{display:flex; align-items:center; gap:16px;}
-  .company-logo{width:130px; height:130px; border-radius:24px; object-fit:cover; background:var(--surface); border:1px solid var(--line);}
-  .company-logo-ph{width:130px; height:130px; border-radius:24px; background:var(--surface); border:1px solid var(--line); display:flex; align-items:center; justify-content:center;}
+  .company-logo{width:84px; height:84px; border-radius:18px; object-fit:cover; background:var(--surface); border:1px solid var(--line);}
+  .company-logo-ph{width:84px; height:84px; border-radius:18px; background:var(--surface); border:1px solid var(--line); display:flex; align-items:center; justify-content:center;}
   h1{font-size:clamp(24px,3.6vw,32px); font-weight:700;}
   .sub{color:var(--muted); margin-top:4px; font-size:14px;}
 
@@ -467,12 +467,17 @@
   // Un día se marca "sin cupo" solo si NO cabe ningún horario de inicio
   // (8am-6pm) para la duración del servicio elegido, considerando lo ocupado.
   function diaSinCupoCW(dia){
+    const horarioSemana = SERVICIO_ELEGIDO.atributos_json?.horario_semana;
+    const diaConfig = horarioSemana && horarioSemana[dia.getDay()];
+    if(diaConfig && !diaConfig.activo) return true; // día cerrado, no trabaja
+    const horaApertura = diaConfig ? parseInt(diaConfig.apertura) : 8;
+    const horaCierre = diaConfig ? parseInt(diaConfig.cierre) : 18;
     const duracionMin = (SERVICIO_ELEGIDO.atributos_json?.duracion_min) || 90;
-    for(let h = 8; h < 18; h++){
+    for(let h = horaApertura; h < horaCierre; h++){
       for(const min of [0, 30]){
         const inicioProp = new Date(dia); inicioProp.setHours(h, min, 0, 0);
         const finProp = new Date(inicioProp.getTime() + duracionMin * 60000);
-        if(finProp.getHours() > 18 || (finProp.getHours() === 18 && finProp.getMinutes() > 0)) continue;
+        if(finProp.getHours() > horaCierre || (finProp.getHours() === horaCierre && finProp.getMinutes() > 0)) continue;
         const seEncima = OCUPADOS_MES.some(o => inicioProp < o.fin && finProp > o.inicio);
         if(!seEncima) return false;
       }
@@ -592,9 +597,12 @@
     const duracionMin = (SERVICIO_ELEGIDO.atributos_json?.duracion_min) || 90;
     const dia = bookingState.fecha;
 
-    const HORA_APERTURA = 8;
-    const HORA_CIERRE = 18; // último trabajo debe TERMINAR antes de esta hora
+    const horarioSemana = SERVICIO_ELEGIDO.atributos_json?.horario_semana;
+    const diaConfig = horarioSemana && horarioSemana[dia.getDay()];
+    const HORA_APERTURA = diaConfig ? parseInt(diaConfig.apertura) : 8;
+    const HORA_CIERRE = diaConfig ? parseInt(diaConfig.cierre) : 18;
     const opciones = [];
+    if(!diaConfig || diaConfig.activo){
     for(let h = HORA_APERTURA; h < HORA_CIERRE; h++){
       for(const min of [0, 30]){
         const inicioProp = new Date(dia); inicioProp.setHours(h, min, 0, 0);
@@ -607,6 +615,7 @@
           opciones.push({ value: `${h}:${min===0?'00':min}`, label });
         }
       }
+    }
     }
 
     if(opciones.length === 0){
@@ -680,11 +689,15 @@
       if(!res.ok) throw new Error('No se pudo crear la reserva');
 
       try{
-        await fetch('/.netlify/functions/notify-provider', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ provider_id: s.provider_id, title: 'Nueva Reserva de Carwash (Web)', body: `${s.nombre} · ${catLabel} · $${precio} · ${bookingState.nombre}` })
-        });
+        const conductores = await api(`conductors?id=eq.${s.provider_id}&select=push_token`);
+        const pushToken = conductores && conductores[0] && conductores[0].push_token;
+        if(pushToken){
+          await fetch('https://exp.host/--/api/v2/push/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({ to: pushToken, title: 'Nueva Reserva de Carwash (Web)', body: `${s.nombre} · ${catLabel} · $${precio} · ${bookingState.nombre}` })
+          });
+        }
       }catch(e){}
 
       mostrarConfirmacionCW(precio);
