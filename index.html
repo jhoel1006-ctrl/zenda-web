@@ -1,633 +1,91 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zenda — Tu propia tienda de yates</title>
-<meta property="og:type" content="website">
-<meta property="og:title" content="Zenda — Tu propia página, tu propia app">
-<meta property="og:description" content="Tu propio link con calendario en vivo y solicitudes de reserva — el pago de depósito en línea llega pronto. Tú manejas precios, horarios y disponibilidad desde tu app.">
-<meta property="og:image" content="https://zendaapp.app/og-default.jpg">
-<meta property="og:url" content="https://zendaapp.app">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Zenda — Tu propia página, tu propia app">
-<meta name="twitter:description" content="Tu propio link con calendario en vivo y solicitudes de reserva — el pago de depósito en línea llega pronto. Tú manejas precios, horarios y disponibilidad desde tu app.">
-<meta name="twitter:image" content="https://zendaapp.app/og-default.jpg">
-<meta name="description" content="Zenda te da tu propio link con calendario en vivo y solicitudes de reserva — depósito en línea próximamente. Tú manejas todo desde tu app.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --bg:#0A0C10;
-    --surface:#12151B;
-    --surface-2:#171B22;
-    --line:#212630;
-    --cyan:#00D4FF;
-    --cyan-dim:#00D4FF22;
-    --gold:#FFD166;
-    --text:#F2F5F8;
-    --muted:#8A94A6;
-  }
-  *{box-sizing:border-box; margin:0; padding:0;}
-  html{scroll-behavior:smooth;}
-  body{
-    background:var(--bg);
-    color:var(--text);
-    font-family:'Manrope', sans-serif;
-    overflow-x:hidden;
-  }
-  h1,h2,h3,.display{
-    font-family:'Space Grotesk', sans-serif;
-    letter-spacing:-0.02em;
-  }
-
-  /* ambient background: skyline + water glow */
-  .glow{
-    position:fixed; inset:0; z-index:0; pointer-events:none;
-    background:
-      radial-gradient(ellipse 900px 500px at 15% -10%, #00D4FF1a, transparent 60%),
-      radial-gradient(ellipse 700px 500px at 90% 10%, #FFD16612, transparent 60%);
-  }
-
-  nav{
-    position:sticky; top:0; z-index:50;
-    display:flex; align-items:center; justify-content:space-between;
-    padding:16px 6vw;
-    padding-top:calc(16px + env(safe-area-inset-top, 0px));
-    background:#0A0C10CC;
-    backdrop-filter:blur(10px);
-    border-bottom:1px solid var(--line);
-    max-width:100%;
-  }
-  .logo{display:flex; align-items:center; gap:10px; font-weight:800; font-size:19px; flex-shrink:0;}
-  .logo svg{flex-shrink:0;}
-  nav a.cta{
-    background:var(--cyan); color:#04121A; font-weight:700; font-size:14px;
-    padding:10px 20px; border-radius:100px; text-decoration:none; white-space:nowrap;
-  }
-  .nav-links{display:flex; align-items:center; gap:26px;}
-  .nav-links a{color:var(--muted); font-size:14px; font-weight:600; text-decoration:none; white-space:nowrap;}
-  .nav-links a:hover{color:var(--text);}
-  .nav-right{display:flex; align-items:center; gap:14px; flex-shrink:0;}
-  .lang-toggle{
-    display:flex; align-items:center; background:var(--surface);
-    border:1px solid var(--line); border-radius:100px; padding:4px; flex-shrink:0;
-  }
-  .lang-toggle button{
-    border:none; background:transparent; color:var(--muted);
-    font-family:'Manrope', sans-serif; font-weight:700; font-size:12px;
-    padding:6px 12px; border-radius:100px; cursor:pointer;
-  }
-  .lang-toggle button.active{background:var(--cyan); color:#04121A;}
-
-  .hamburger-btn{
-    display:none; align-items:center; justify-content:center;
-    width:38px; height:38px; border-radius:10px; border:1px solid var(--line);
-    background:var(--surface); flex-shrink:0; cursor:pointer; padding:0;
-  }
-
-  .mobile-menu-overlay{
-    display:none; position:fixed; inset:0; top:0; z-index:49;
-    background:#000000aa;
-  }
-  .mobile-menu-overlay.open{display:block;}
-  .mobile-menu{
-    position:fixed; top:0; right:0; z-index:51; height:100%; width:min(84vw, 340px);
-    background:#0D1016; border-left:1px solid var(--line);
-    padding:20px 22px; padding-top:calc(20px + env(safe-area-inset-top, 0px));
-    padding-bottom:calc(24px + env(safe-area-inset-bottom, 0px));
-    transform:translateX(100%); transition:transform .25s ease;
-    display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start;
-    overflow-y:auto;
-  }
-  .mobile-menu.open{transform:translateX(0);}
-  .mobile-menu-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:22px;}
-  .mobile-menu-close{
-    width:34px; height:34px; border-radius:50%; border:1px solid var(--line);
-    background:var(--surface); color:var(--text); font-size:16px; cursor:pointer;
-  }
-  .mobile-menu a.mobile-link{
-    display:block; width:100%; box-sizing:border-box;
-    color:var(--text); font-size:16px; font-weight:600; text-decoration:none;
-    padding:14px 4px; border-bottom:1px solid var(--line);
-  }
-  .mobile-menu a.cta{
-    display:block; width:100%; box-sizing:border-box;
-    text-align:center; margin-top:20px; padding:15px; font-size:15px;
-  }
-
-  body.menu-open{overflow:hidden;}
-
-  @media (max-width:900px){
-    .nav-links{display:none;}
-    .nav-right .cta{display:none;}
-    .hamburger-btn{display:flex;}
-  }
-  @media (min-width:901px){
-    .hamburger-btn{display:none;}
-    .mobile-menu, .mobile-menu-overlay{display:none !important;}
-  }
-
-  header.hero, section.verticals, section.how, section.compare, section.app-explain{scroll-margin-top:84px;}
-
-  header.hero{
-    position:relative; z-index:1;
-    padding:9vw 6vw 8vw;
-    max-width:1200px; margin:0 auto;
-    text-align:left;
-  }
-  .eyebrow{
-    display:inline-flex; align-items:center; gap:8px;
-    font-size:13px; font-weight:700; color:var(--cyan);
-    letter-spacing:0.08em; text-transform:uppercase;
-    background:var(--cyan-dim); border:1px solid #00D4FF33;
-    padding:7px 14px; border-radius:100px; margin-bottom:26px;
-  }
-  .eyebrow .dot{width:6px; height:6px; border-radius:50%; background:var(--cyan); box-shadow:0 0 8px var(--cyan);}
-  h1.display{
-    font-size:clamp(38px, 6.4vw, 84px);
-    line-height:0.98;
-    font-weight:700;
-    max-width:15ch;
-  }
-  h1.display .line2{color:var(--muted); display:block;}
-  .sub{
-    margin-top:28px; font-size:19px; line-height:1.6; color:var(--muted);
-    max-width:46ch;
-  }
-  .hero-actions{display:flex; gap:14px; margin-top:38px; flex-wrap:wrap;}
-  .btn{
-    padding:15px 26px; border-radius:12px; font-weight:700; font-size:15px;
-    text-decoration:none; display:inline-flex; align-items:center; gap:10px;
-    border:1px solid var(--line);
-  }
-  .btn-primary{background:var(--cyan); color:#04121A; border:none;}
-  .btn-ghost{color:var(--text); background:var(--surface);}
-  .btn[disabled], .btn.soon{opacity:0.55; pointer-events:none;}
-
-  .waterline{
-    position:relative; z-index:1; height:64px; margin-top:20px;
-    background:
-      linear-gradient(180deg, transparent, #00D4FF08 60%, #00D4FF14),
-      repeating-linear-gradient(90deg, transparent 0 38px, #ffffff08 38px 39px);
-    border-top:1px solid var(--line); border-bottom:1px solid var(--line);
-  }
-
-  section.verticals{
-    position:relative; z-index:1;
-    padding:7vw 6vw; max-width:1200px; margin:0 auto;
-  }
-  section.compare{
-    position:relative; z-index:1;
-    padding:7vw 6vw 2vw; max-width:1200px; margin:0 auto;
-  }
-  .compare-grid{display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:40px;}
-  .compare-card{
-    background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:32px;
-  }
-  .compare-card.good{border-color:#00D4FF55; background:linear-gradient(160deg, var(--surface), #00131a);}
-  .compare-tag{
-    display:inline-block; font-size:12px; font-weight:700; letter-spacing:0.06em;
-    padding:6px 12px; border-radius:100px; margin-bottom:16px;
-  }
-  .compare-tag.bad{background:#2a1414; color:#FF7A7A;}
-  .compare-tag.good{background:var(--cyan-dim); color:var(--cyan);}
-  .compare-card > p{font-size:16px; line-height:1.5; margin-bottom:20px; font-weight:600;}
-  .compare-card ul{list-style:none;}
-  .compare-card li{
-    font-size:14px; color:var(--muted); padding:10px 0 10px 26px; position:relative;
-    border-top:1px solid var(--line);
-  }
-  .compare-card li:first-child{border-top:none;}
-  .compare-card.good li{color:var(--text);}
-  .compare-card li::before{content:'—'; position:absolute; left:0; color:var(--muted);}
-  .compare-card.good li::before{content:'✓'; color:var(--cyan);}
-
-  section.app-explain{
-    position:relative; z-index:1;
-    padding:5vw 6vw 3vw; max-width:1200px; margin:0 auto;
-    display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:center;
-  }
-  .app-explain-list{display:flex; flex-direction:column; gap:0; margin-top:24px;}
-  .app-feature{display:flex; gap:16px; padding:16px 0; border-top:1px solid var(--line);}
-  .app-feature:first-child{border-top:none;}
-  .app-feature .app-feature-icon{
-    width:38px; height:38px; border-radius:10px; background:var(--cyan-dim);
-    display:flex; align-items:center; justify-content:center; flex-shrink:0;
-  }
-  .app-feature h4{font-size:15px; font-weight:700; margin-bottom:3px;}
-  .app-feature p{font-size:13px; color:var(--muted); line-height:1.5;}
-
-  .app-mock{
-    background:linear-gradient(160deg, var(--surface), #0d1015);
-    border:1px solid var(--line); border-radius:28px; padding:20px 20px 0;
-    box-shadow:0 40px 80px -30px #00D4FF22; overflow:hidden;
-  }
-  .app-mock-header{display:flex; align-items:center; justify-content:space-between; padding:6px 4px 18px;}
-  .app-mock-header strong{font-size:15px; font-weight:800;}
-  .app-mock-body{display:flex; flex-direction:column; gap:10px; padding-bottom:14px;}
-  .app-mock-card{
-    background:var(--surface-2); border:1px solid var(--line); border-radius:12px; padding:14px;
-    display:flex; align-items:center; justify-content:space-between;
-  }
-  .app-mock-card .badge{
-    font-size:10px; font-weight:700; padding:4px 9px; border-radius:100px;
-  }
-  .badge-pending{background:rgba(255,215,0,0.15); color:#FFD166;}
-  .badge-confirmed{background:rgba(0,212,255,0.15); color:var(--cyan);}
-  .app-mock-navbar{
-    display:flex; border-top:1px solid var(--line); margin:0 -20px; padding:14px 20px 18px;
-  }
-  .app-mock-navbar .tab{flex:1; display:flex; flex-direction:column; align-items:center; gap:5px;}
-  .app-mock-navbar .tab span{font-size:10px; color:var(--muted); font-weight:600;}
-  .app-mock-navbar .tab.active span{color:var(--cyan);}
-
-  .section-head{max-width:60ch; margin-bottom:50px;}
-  .section-head .eyebrow{margin-bottom:18px;}
-  .section-head h2{font-size:clamp(28px,3.4vw,42px); font-weight:700;}
-  .section-head p{color:var(--muted); font-size:16px; margin-top:14px; line-height:1.6;}
-
-  .grid{
-    display:grid; grid-template-columns:repeat(4, 1fr); gap:16px;
-  }
-  .card{
-    background:var(--surface);
-    border:1px solid var(--line);
-    border-radius:20px;
-    padding:28px 24px;
-    position:relative;
-    overflow:hidden;
-    transition:transform .25s ease, border-color .25s ease;
-  }
-  .card:hover{transform:translateY(-4px); border-color:#00D4FF55;}
-  .card .icon-wrap{
-    width:48px; height:48px; border-radius:12px;
-    display:flex; align-items:center; justify-content:center;
-    background:var(--surface-2); border:1px solid var(--line);
-    margin-bottom:22px;
-  }
-  .card h3{font-size:18px; font-weight:700; margin-bottom:8px;}
-  .card p{color:var(--muted); font-size:14px; line-height:1.55; margin-bottom:16px;}
-  .card .price{font-size:13px; color:var(--cyan); font-weight:700;}
-  .card .cta{
-    background:var(--cyan); color:#04121A; font-weight:700; font-size:13px;
-    padding:9px 16px; border-radius:100px; text-decoration:none;
-  }
-  .soon-card{opacity:0.55;}
-  .soon-tag{color:var(--muted) !important;}
-
-  section.how{
-    position:relative; z-index:1;
-    padding:6vw 6vw 9vw; max-width:1200px; margin:0 auto;
-    display:grid; grid-template-columns:0.9fr 1.1fr; gap:60px; align-items:center;
-  }
-  .how-steps{display:flex; flex-direction:column; gap:0;}
-  .step{display:flex; gap:18px; padding:22px 0; border-bottom:1px solid var(--line);}
-  .step:last-child{border-bottom:none;}
-  .step .num{
-    font-family:'Space Grotesk'; font-weight:700; font-size:14px; color:var(--cyan);
-    background:var(--cyan-dim); width:34px; height:34px; border-radius:50%;
-    display:flex; align-items:center; justify-content:center; flex-shrink:0;
-  }
-  .step h4{font-size:16px; font-weight:700; margin-bottom:5px;}
-  .step p{color:var(--muted); font-size:14px; line-height:1.55;}
-
-  .phone-mock{
-    background:linear-gradient(160deg, var(--surface), #0d1015);
-    border:1px solid var(--line);
-    border-radius:28px;
-    padding:26px;
-    box-shadow:0 40px 80px -30px #00D4FF22;
-  }
-  .phone-mock .mock-row{
-    display:flex; align-items:center; justify-content:space-between;
-    background:var(--surface-2); border:1px solid var(--line);
-    border-radius:14px; padding:16px 18px; margin-bottom:12px;
-  }
-  .phone-mock .mock-row:last-child{margin-bottom:0;}
-  .mock-left{display:flex; align-items:center; gap:12px;}
-  .mock-dot{width:36px; height:36px; border-radius:10px; background:var(--cyan-dim); display:flex; align-items:center; justify-content:center;}
-  .mock-title{font-size:14px; font-weight:700;}
-  .mock-sub{font-size:12px; color:var(--muted);}
-  .mock-arrow{color:var(--muted);}
-
-  footer{
-    position:relative; z-index:1;
-    border-top:1px solid var(--line);
-    padding:40px 6vw; max-width:1200px; margin:0 auto;
-    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;
-  }
-  footer .logo{font-size:16px;}
-  footer p{color:var(--muted); font-size:13px;}
-
-  @media (max-width:900px){
-    .grid{grid-template-columns:repeat(2, 1fr);}
-    section.how{grid-template-columns:1fr;}
-    .compare-grid{grid-template-columns:1fr;}
-    section.app-explain{grid-template-columns:1fr;}
-  }
-  @media (max-width:560px){
-    .grid{grid-template-columns:1fr;}
-    nav{padding:18px 5vw;}
-    header.hero{padding:16vw 5vw 14vw;}
-    .card[style*="span 2"]{grid-column:span 1 !important;}
-  }
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Zenda — Reservas directas para negocios de servicios</title>
+  <meta name="description" content="Tu tienda pública y tu app de gestión para recibir solicitudes de reserva, controlar disponibilidad y atender clientes sin pagar comisión por reserva.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Zenda — Tu propia página, tu propia app">
+  <meta property="og:description" content="Tu tienda pública y tu app de gestión para recibir solicitudes de reserva, controlar disponibilidad y atender clientes sin pagar comisión por reserva.">
+  <meta property="og:image" content="https://zendaapp.app/og-default.jpg">
+  <meta property="og:url" content="https://zendaapp.app">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Zenda — Tu propia página, tu propia app">
+  <meta name="twitter:description" content="Tu tienda pública y tu app de gestión para recibir solicitudes de reserva, controlar disponibilidad y atender clientes sin pagar comisión por reserva.">
+  <meta name="twitter:image" content="https://zendaapp.app/og-default.jpg">
+  <meta name="theme-color" content="#071016">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--ink:#f5fbfd;--muted:#9cb0b9;--cyan:#22d3ee;--cyan2:#06b6d4;--gold:#f4c66c;--bg:#071016;--panel:#0c1820;--panel2:#11232c;--line:rgba(255,255,255,.10);--max:1180px}
+    *{box-sizing:border-box;margin:0;padding:0} html{scroll-behavior:smooth} body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden} body.menu-open{overflow:hidden}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 78% 5%,rgba(34,211,238,.13),transparent 28%),radial-gradient(circle at 10% 45%,rgba(6,182,212,.07),transparent 30%);z-index:-1}
+    a{color:inherit} button,a{touch-action:manipulation}.wrap{width:min(var(--max),88vw);margin:auto}.eyebrow{display:inline-flex;align-items:center;gap:.55rem;color:var(--cyan);font-weight:800;font-size:.78rem;letter-spacing:.13em;text-transform:uppercase}.eyebrow:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 14px var(--cyan)}
+    nav{height:76px;display:flex;align-items:center;justify-content:space-between;width:min(var(--max),92vw);margin:auto;position:relative;z-index:20}.logo{display:flex;align-items:center;gap:.65rem;text-decoration:none;font:800 1.08rem Manrope;letter-spacing:.15em}.logo-mark{width:30px;height:30px;border:1px solid var(--cyan);border-radius:9px;display:grid;place-items:center;color:var(--cyan)}.nav-links{display:flex;gap:2rem;align-items:center}.nav-links a{text-decoration:none;color:#c9d6db;font-weight:600;font-size:.92rem}.nav-links a:hover{color:white}.lang{display:flex;background:#0b171e;border:1px solid var(--line);border-radius:999px;padding:3px}.lang button{border:0;background:transparent;color:var(--muted);padding:.42rem .62rem;border-radius:999px;font-weight:800;cursor:pointer}.lang button.active{background:var(--cyan);color:#032029}.menu{display:none;border:1px solid var(--line);background:var(--panel);color:white;width:42px;height:42px;border-radius:12px;font-size:1.2rem}
+    .hero{min-height:690px;display:grid;grid-template-columns:1.08fr .92fr;gap:4.5rem;align-items:center;padding:5.5rem 0 7rem}.hero h1{font:800 clamp(3.2rem,6.4vw,6.1rem)/.96 Manrope;letter-spacing:-.06em;margin:1.4rem 0 1.5rem}.hero h1 span{color:var(--cyan)}.lead{color:#b7c6cc;font-size:clamp(1.08rem,1.7vw,1.28rem);line-height:1.65;max-width:625px}.actions{display:flex;gap:.85rem;flex-wrap:wrap;margin-top:2rem}.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;text-decoration:none;font-weight:800;border-radius:13px;padding:1rem 1.35rem;border:1px solid var(--line);transition:.2s}.btn:hover{transform:translateY(-2px)}.btn.primary{background:var(--cyan);color:#032029;border-color:transparent;box-shadow:0 12px 35px rgba(34,211,238,.18)}.btn.secondary{background:rgba(255,255,255,.04)}.micro{display:flex;gap:1.4rem;flex-wrap:wrap;margin-top:1.35rem;color:var(--muted);font-size:.88rem}.micro span:before{content:"✓";color:var(--cyan);margin-right:.4rem;font-weight:900}
+    .hero-visual{position:relative;min-height:530px;display:grid;place-items:center}.orb{position:absolute;width:430px;height:430px;border-radius:50%;background:radial-gradient(circle at 42% 35%,#0c4451,#09232b 52%,#061116 70%);border:1px solid rgba(34,211,238,.22);box-shadow:0 0 90px rgba(34,211,238,.12)}.phone{width:254px;border:8px solid #15252d;background:#05090b;border-radius:38px;padding:8px;position:relative;box-shadow:0 35px 80px #000;transform:rotate(2.5deg);overflow:hidden}.phone:before{content:"";display:block;width:84px;height:18px;background:#15252d;border-radius:0 0 12px 12px;position:absolute;top:0;left:50%;transform:translateX(-50%);z-index:2}.phone img{display:block;width:100%;border-radius:24px}.float-card{position:absolute;background:rgba(12,24,32,.92);border:1px solid rgba(255,255,255,.13);box-shadow:0 18px 45px rgba(0,0,0,.35);border-radius:16px;padding:1rem 1.05rem;backdrop-filter:blur(12px)}.float-card strong{display:block;font:700 .96rem Manrope}.float-card small{color:var(--muted)}.fc1{left:0;top:19%}.fc2{right:-2%;bottom:17%}.pulse{width:9px;height:9px;background:#46e5a4;border-radius:50%;display:inline-block;margin-right:.5rem;box-shadow:0 0 10px #46e5a4}
+    .split-bar{border-block:1px solid var(--line);background:rgba(255,255,255,.025)}.split{display:grid;grid-template-columns:1fr auto 1px 1fr;align-items:center;gap:2rem;padding:1.7rem 0}.split div{font-weight:700}.split p{color:var(--muted);font-weight:500;margin-top:.25rem}.split .divider{width:1px;height:48px;background:var(--line)}
+    section{padding:7rem 0}.section-head{max-width:760px;margin-bottom:3rem}.section-head h2{font:800 clamp(2.25rem,4.5vw,4rem)/1.05 Manrope;letter-spacing:-.045em;margin:.9rem 0 1rem}.section-head p{font-size:1.08rem;line-height:1.65;color:var(--muted)}
+    .flow{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;counter-reset:flow}.flow-card{counter-increment:flow;background:linear-gradient(145deg,var(--panel),rgba(17,35,44,.6));border:1px solid var(--line);border-radius:20px;padding:1.5rem;min-height:220px}.flow-card:before{content:"0" counter(flow);display:grid;place-items:center;width:38px;height:38px;border-radius:11px;background:rgba(34,211,238,.11);color:var(--cyan);font-weight:800;margin-bottom:2.2rem}.flow-card h3{font:700 1.04rem Manrope;margin-bottom:.65rem}.flow-card p{color:var(--muted);line-height:1.55;font-size:.95rem}.flow-card:not(:last-child){position:relative}.flow-card:not(:last-child):after{content:"→";position:absolute;right:-1rem;top:50%;z-index:2;width:2rem;height:2rem;border-radius:50%;background:var(--cyan);color:#032029;display:grid;place-items:center;font-weight:900}
+    .business{background:linear-gradient(180deg,transparent,rgba(17,35,44,.45),transparent)}.business-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:5rem;align-items:center}.proof-phone{display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:center}.proof-phone img{width:100%;border-radius:24px;border:1px solid var(--line);box-shadow:0 25px 65px rgba(0,0,0,.45)}.proof-phone img:nth-child(2){transform:translateY(2rem)}.benefits{list-style:none;margin:1.8rem 0}.benefits li{padding:1.05rem 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:35px 1fr;gap:.8rem;line-height:1.45}.benefits b{font-family:Manrope}.check{width:28px;height:28px;background:rgba(34,211,238,.12);color:var(--cyan);border-radius:9px;display:grid;place-items:center;font-weight:900}.benefits small{display:block;color:var(--muted);font-size:.9rem;margin-top:.2rem}
+    .compare{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.compare-card{border:1px solid var(--line);border-radius:22px;padding:2rem;background:var(--panel)}.compare-card.zenda{border-color:rgba(34,211,238,.48);background:linear-gradient(145deg,#0d222a,#08151b)}.tag{display:inline-flex;border-radius:999px;padding:.45rem .7rem;font-size:.73rem;font-weight:900;letter-spacing:.08em;background:#261518;color:#ff858e;margin-bottom:1rem}.zenda .tag{background:rgba(34,211,238,.12);color:var(--cyan)}.compare-card h3{font:700 1.25rem Manrope;margin-bottom:1.3rem}.compare-card ul{list-style:none}.compare-card li{padding:.85rem 0;border-top:1px solid var(--line);color:var(--muted)}.zenda li{color:#d9e5e9}.compare-card li:before{content:"—";margin-right:.7rem}.zenda li:before{content:"✓";color:var(--cyan);font-weight:900}
+    .pricing{display:grid;grid-template-columns:1.18fr 1fr 1fr;gap:1rem}.price-card{border:1px solid var(--line);border-radius:22px;padding:1.7rem;background:var(--panel);display:flex;flex-direction:column;min-height:350px}.price-card.featured{border-color:var(--cyan);background:linear-gradient(145deg,#0d252e,#09161c)}.price-icon{font-size:1.5rem;margin-bottom:1.2rem}.price-card h3{font:700 1.4rem Manrope}.amount{font:800 2.7rem Manrope;margin:.9rem 0}.amount span{font:500 .9rem DM Sans;color:var(--muted)}.price-card p{color:var(--muted);line-height:1.5}.price-card ul{list-style:none;margin:1.25rem 0 1.5rem}.price-card li{font-size:.94rem;padding:.38rem 0}.price-card li:before{content:"✓";color:var(--cyan);margin-right:.55rem}.price-card .btn{margin-top:auto}.soon{opacity:.62}.price-card .note{font-size:.8rem;margin-top:.75rem;text-align:center}
+    .final{padding-top:2rem}.final-box{border:1px solid rgba(34,211,238,.3);border-radius:28px;padding:clamp(2rem,6vw,5rem);text-align:center;background:radial-gradient(circle at 50% 0,rgba(34,211,238,.13),transparent 55%),var(--panel)}.final h2{font:800 clamp(2.4rem,5vw,4.5rem)/1.05 Manrope;letter-spacing:-.045em;max-width:800px;margin:0 auto 1rem}.final p{color:var(--muted);font-size:1.1rem}.final .actions{justify-content:center}
+    footer{padding:3rem 0;border-top:1px solid var(--line);margin-top:6rem}.footer-row{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:.88rem;gap:1rem}
+    @media(max-width:900px){.nav-links{display:none}.menu{display:block}.hero{grid-template-columns:1fr;padding-top:3rem}.hero-copy{text-align:center}.lead{margin:auto}.actions,.micro{justify-content:center}.hero-visual{min-height:475px}.flow{grid-template-columns:1fr 1fr}.flow-card:nth-child(2):after{display:none}.business-grid{grid-template-columns:1fr}.proof-phone{max-width:520px;margin:auto}.pricing{grid-template-columns:1fr 1fr}.pricing .featured{grid-column:1/-1}.mobile-panel{display:none;position:absolute;top:70px;left:0;right:0;background:#0c1820;border:1px solid var(--line);border-radius:16px;padding:1rem}.mobile-panel.open{display:grid}.mobile-panel a{padding:.85rem;text-decoration:none;border-bottom:1px solid var(--line)}}
+    @media(max-width:620px){.wrap{width:min(90vw,var(--max))}nav{width:90vw}.hero{min-height:auto;padding-bottom:5rem}.hero h1{font-size:3.15rem}.hero-visual{min-height:415px}.orb{width:320px;height:320px}.phone{width:206px}.fc1{left:-1rem;top:15%}.fc2{right:-1rem;bottom:12%}.float-card{padding:.75rem;font-size:.8rem}.split{grid-template-columns:1fr;text-align:center}.split .divider{width:70px;height:1px;margin:auto}.flow,.compare,.pricing{grid-template-columns:1fr}.flow-card:after{display:none!important}.pricing .featured{grid-column:auto}.section-head h2{font-size:2.5rem}.business-grid{gap:3rem}.final-box{padding:2.4rem 1.3rem}.footer-row{flex-direction:column;text-align:center}}
+  </style>
 </head>
 <body>
-<div class="glow"></div>
+  <nav>
+    <a class="logo" href="#top"><span class="logo-mark">Z</span> ZENDA</a>
+    <div class="nav-links"><a href="/boats" data-es="Buscar botes" data-en="Find boats">Buscar botes</a><a href="#negocios" data-es="Para negocios" data-en="For businesses">Para negocios</a><a href="#como" data-es="Cómo funciona" data-en="How it works">Cómo funciona</a><a href="#precios" data-es="Precios" data-en="Pricing">Precios</a></div>
+    <div style="display:flex;gap:.7rem;align-items:center"><div class="lang"><button id="es" class="active">ES</button><button id="en">EN</button></div><button class="menu" aria-label="Abrir menú" aria-expanded="false" aria-controls="mobile-panel">☰</button></div>
+    <div class="mobile-panel" id="mobile-panel"><a href="/boats" data-es="Buscar botes" data-en="Find boats">Buscar botes</a><a href="#negocios" data-es="Para negocios" data-en="For businesses">Para negocios</a><a href="#como" data-es="Cómo funciona" data-en="How it works">Cómo funciona</a><a href="#precios" data-es="Precios" data-en="Pricing">Precios</a></div>
+  </nav>
 
-<nav>
-  <div class="logo">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="1.6"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-    ZENDA
-  </div>
+  <main id="top">
+    <header class="hero wrap">
+      <div class="hero-copy"><span class="eyebrow" data-es="Reservas directas · Miami" data-en="Direct bookings · Miami">Reservas directas · Miami</span><h1 data-es="Tu gente. Tus reservas. Tu negocio." data-en="Your audience. Your bookings. Your business.">Tu gente. Tus reservas. <span>Tu negocio.</span></h1><p class="lead" data-es="Zenda convierte tu Instagram y WhatsApp en solicitudes de reserva organizadas. Tus clientes ven disponibilidad, eligen el servicio y reservan desde tu propio link." data-en="Zenda turns your Instagram and WhatsApp audience into organized booking requests. Clients see availability, choose a service, and book through your own link.">Zenda convierte tu Instagram y WhatsApp en solicitudes de reserva organizadas. Tus clientes ven disponibilidad, eligen el servicio y reservan desde tu propio link.</p><div class="actions"><a class="btn primary" href="/boats" data-es="Buscar botes en Miami →" data-en="Find boats in Miami →">Buscar botes en Miami →</a><a class="btn secondary" href="#negocios" data-es="Quiero mi tienda" data-en="I want my storefront">Quiero mi tienda</a></div><div class="micro"><span data-es="Sin comisión por reserva" data-en="No booking commission">Sin comisión por reserva</span><span data-es="Tu propio link" data-en="Your own link">Tu propio link</span><span data-es="Control desde tu app" data-en="Manage from your app">Control desde tu app</span></div></div>
+      <div class="hero-visual"><div class="orb"></div><div class="float-card fc1"><small data-es="Solicitud recibida" data-en="Request received">Solicitud recibida</small><strong><span class="pulse"></span>Bombom · 4 horas</strong></div><div class="phone"><img src="assets/storefront.jpg" alt="Tienda de yates Bombom en Zenda"></div><div class="float-card fc2"><small data-es="Tu calendario" data-en="Your calendar">Tu calendario</small><strong data-es="Disponible en tiempo real" data-en="Live availability">Disponible en tiempo real</strong></div></div>
+    </header>
 
-  <div class="nav-links">
-    <a href="/boats" data-es="Buscar botes" data-en="Find boats">Buscar botes</a>
-    <a href="#negocios" data-es="Para negocios" data-en="For businesses">Para negocios</a>
-    <a href="#como-funciona" data-es="Cómo funciona" data-en="How it works">Cómo funciona</a>
-    <a href="#verticales" data-es="Planes y precios" data-en="Plans & pricing">Planes y precios</a>
-    <a href="#demos" data-es="Tiendas de ejemplo" data-en="Demo stores">Tiendas de ejemplo</a>
-  </div>
+    <div class="split-bar"><div class="split wrap"><div><strong data-es="¿Quieres reservar un bote?" data-en="Want to book a boat?">¿Quieres reservar un bote?</strong><p data-es="Explora opciones disponibles en Miami." data-en="Explore available options in Miami.">Explora opciones disponibles en Miami.</p></div><a class="btn secondary" href="/boats" data-es="Ver botes →" data-en="See boats →">Ver botes →</a><div class="divider"></div><div><strong data-es="¿Tienes un negocio de servicios?" data-en="Run a service business?">¿Tienes un negocio de servicios?</strong><p data-es="Recibe reservas desde tu propio link." data-en="Receive bookings through your own link.">Recibe reservas desde tu propio link.</p></div></div></div>
 
-  <div class="nav-right">
-    <div class="lang-toggle">
-      <button id="btn-es" class="active" onclick="setLang('es')">ES</button>
-      <button id="btn-en" onclick="setLang('en')">EN</button>
-    </div>
-    <a class="cta" href="#verticales" data-es="Crear mi tienda" data-en="Create my store">Crear mi tienda</a>
-    <button class="hamburger-btn" id="btn-menu-abrir" aria-label="Abrir menú" aria-expanded="false" aria-controls="mobile-menu">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-  </div>
-</nav>
+    <section id="como" class="wrap"><div class="section-head"><span class="eyebrow" data-es="Así funciona" data-en="How it works">Así funciona</span><h2 data-es="De un clic en Instagram a una reserva organizada." data-en="From an Instagram click to an organized booking.">De un clic en Instagram a una reserva organizada.</h2><p data-es="El cliente no descarga ninguna app. Tú sí tienes una herramienta para atender cada solicitud y mantener tu disponibilidad al día." data-en="Your customer downloads nothing. You get the tools to handle every request and keep availability current.">El cliente no descarga ninguna app. Tú sí tienes una herramienta para atender cada solicitud y mantener tu disponibilidad al día.</p></div><div class="flow"><article class="flow-card"><h3 data-es="Compartes tu link" data-en="Share your link">Compartes tu link</h3><p data-es="Pon zendaapp.app/tu-servicio/tu-nombre en Instagram, WhatsApp o donde vendes." data-en="Put zendaapp.app/your-service/your-name on Instagram, WhatsApp, or wherever you sell.">Pon zendaapp.app/tu-servicio/tu-nombre en Instagram, WhatsApp o donde vendes.</p></article><article class="flow-card"><h3 data-es="El cliente elige" data-en="The client chooses">El cliente elige</h3><p data-es="Ve fotos, precios y horarios disponibles desde el celular, sin llamadas ni descargas." data-en="They see photos, prices, and availability on mobile—no calls or downloads.">Ve fotos, precios y horarios disponibles desde el celular, sin llamadas ni descargas.</p></article><article class="flow-card"><h3 data-es="Llega la solicitud" data-en="The request arrives">Llega la solicitud</h3><p data-es="Recibes el aviso en tu app con el servicio, fecha y datos necesarios." data-en="You get an alert in your app with service, date, and the details you need.">Recibes el aviso en tu app con el servicio, fecha y datos necesarios.</p></article><article class="flow-card"><h3 data-es="Confirmas y atiendes" data-en="Confirm and deliver">Confirmas y atiendes</h3><p data-es="Chateas con el cliente, coordinas el cobro y mantienes tu calendario ordenado." data-en="Chat with the customer, coordinate payment, and keep your calendar organized.">Chateas con el cliente, coordinas el cobro y mantienes tu calendario ordenado.</p></article></div></section>
 
-<div class="mobile-menu-overlay" id="menu-overlay"></div>
-<nav class="mobile-menu" id="mobile-menu" aria-label="Menú principal">
-  <div class="mobile-menu-header">
-    <div class="logo" style="font-size:17px;">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="1.6"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-      ZENDA
-    </div>
-    <button class="mobile-menu-close" id="btn-menu-cerrar" aria-label="Cerrar menú">✕</button>
-  </div>
-  <a class="mobile-link" href="/boats" data-es="Buscar botes" data-en="Find boats">Buscar botes</a>
-  <a class="mobile-link" href="#negocios" data-es="Para negocios" data-en="For businesses">Para negocios</a>
-  <a class="mobile-link" href="#como-funciona" data-es="Cómo funciona" data-en="How it works">Cómo funciona</a>
-  <a class="mobile-link" href="#verticales" data-es="Planes y precios" data-en="Plans & pricing">Planes y precios</a>
-  <a class="mobile-link" href="#demos" data-es="Tiendas de ejemplo" data-en="Demo stores">Tiendas de ejemplo</a>
-  <a class="cta" href="#verticales" data-es="Crear mi tienda" data-en="Create my store">Crear mi tienda</a>
-</nav>
+    <section id="negocios" class="business"><div class="business-grid wrap"><div class="proof-phone"><img src="assets/booking.jpg" alt="Solicitud de reserva recibida en Zenda"><img src="assets/yacht.jpg" alt="Ficha de un yate en Zenda"></div><div><span class="eyebrow" data-es="Detrás de tu tienda" data-en="Behind your storefront">Detrás de tu tienda</span><div class="section-head" style="margin-bottom:0"><h2 data-es="No es solo una página. Es tu app de gestión." data-en="Not just a page. Your management app.">No es solo una página. Es tu app de gestión.</h2><p data-es="Tu tienda vende de cara al cliente. Tu app organiza el trabajo detrás: reservas, disponibilidad, servicios y conversación." data-en="Your storefront sells to customers. Your app organizes the work behind it: bookings, availability, services, and conversation.">Tu tienda vende de cara al cliente. Tu app organiza el trabajo detrás: reservas, disponibilidad, servicios y conversación.</p></div><ul class="benefits"><li><span class="check">✓</span><div><b data-es="Edita sin depender de nadie" data-en="Edit without waiting on anyone">Edita sin depender de nadie</b><small data-es="Cambia precios, horarios, fotos y servicios desde tu app." data-en="Change prices, schedules, photos, and services from your app.">Cambia precios, horarios, fotos y servicios desde tu app.</small></div></li><li><span class="check">✓</span><div><b data-es="Muestra disponibilidad real" data-en="Show real availability">Muestra disponibilidad real</b><small data-es="Bloquea días u horas para evitar confusiones y dobles reservas." data-en="Block dates or times to prevent confusion and double bookings.">Bloquea días u horas para evitar confusiones y dobles reservas.</small></div></li><li><span class="check">✓</span><div><b data-es="Habla directo con tu cliente" data-en="Talk directly to your customer">Habla directo con tu cliente</b><small data-es="Cada solicitud queda vinculada a su chat y sus detalles." data-en="Every request stays connected to its chat and details.">Cada solicitud queda vinculada a su chat y sus detalles.</small></div></li></ul><a class="btn primary" href="#precios" data-es="Ver planes" data-en="See plans">Ver planes</a></div></div></section>
 
+    <section class="wrap"><div class="section-head"><span class="eyebrow" data-es="La diferencia" data-en="The difference">La diferencia</span><h2 data-es="No alquilas un rincón en un mercado. Construyes tu canal directo." data-en="You don't rent a corner in a marketplace. You build your direct channel.">No alquilas un rincón en un mercado. Construyes tu canal directo.</h2></div><div class="compare"><article class="compare-card"><span class="tag" data-es="MERCADO COMPARTIDO" data-en="SHARED MARKETPLACE">MERCADO COMPARTIDO</span><h3 data-es="Compites dentro de la plataforma" data-en="Compete inside the platform">Compites dentro de la plataforma</h3><ul><li data-es="Cientos de proveedores al lado" data-en="Hundreds of providers beside you">Cientos de proveedores al lado</li><li data-es="Presión constante por bajar precios" data-en="Constant pressure to lower prices">Presión constante por bajar precios</li><li data-es="Comisión en cada reserva" data-en="A fee on every booking">Comisión en cada reserva</li><li data-es="La relación pertenece a la plataforma" data-en="The relationship belongs to the platform">La relación pertenece a la plataforma</li></ul></article><article class="compare-card zenda"><span class="tag" data-es="TU TIENDA EN ZENDA" data-en="YOUR ZENDA STOREFRONT">TU TIENDA EN ZENDA</span><h3 data-es="Llevas a tu gente a tu negocio" data-en="Bring your audience to your business">Llevas a tu gente a tu negocio</h3><ul><li data-es="Solo aparecen tus servicios" data-en="Only your services are shown">Solo aparecen tus servicios</li><li data-es="Tu Instagram, tu tráfico, tus clientes" data-en="Your Instagram, your traffic, your clients">Tu Instagram, tu tráfico, tus clientes</li><li data-es="Mensualidad fija, sin comisión por reserva" data-en="Flat monthly price, no booking commission">Mensualidad fija, sin comisión por reserva</li><li data-es="Tú controlas disponibilidad y atención" data-en="You control availability and service">Tú controlas disponibilidad y atención</li></ul></article></div></section>
 
-<header class="hero" style="text-align:center; padding-top:7vw; padding-bottom:5vw;">
-  <span class="eyebrow" style="margin-left:auto; margin-right:auto;"><span class="dot"></span> <span data-es="Miami · Reserva directo" data-en="Miami · Book direct">Miami · Reserva directo</span></span>
-  <h1 class="display" style="max-width:none;" data-es="Encuentra tu bote en Miami" data-en="Find your boat in Miami">Encuentra tu bote en Miami</h1>
-  <p class="sub" style="margin-left:auto; margin-right:auto;" data-es="Yates, catamaranes y lanchas de proveedores verificados. Reserva en línea, sin llamadas." data-en="Yachts, catamarans, and boats from verified providers. Book online, no calls needed.">Yates, catamaranes y lanchas de proveedores verificados. Reserva en línea, sin llamadas.</p>
-  <div class="hero-actions" style="justify-content:center;">
-    <a class="btn btn-primary" href="/boats" data-es="Ver botes disponibles →" data-en="See available boats →">Ver botes disponibles →</a>
-  </div>
-</header>
+    <section id="precios" class="wrap"><div class="section-head"><span class="eyebrow" data-es="Planes claros" data-en="Clear plans">Planes claros</span><h2 data-es="Tu tienda y tu app por una mensualidad fija." data-en="Your storefront and app for one flat monthly price.">Tu tienda y tu app por una mensualidad fija.</h2><p data-es="Sin porcentaje sobre cada reserva. El depósito en línea todavía no está habilitado; por ahora coordinas el cobro directamente con el cliente." data-en="No percentage taken from each booking. Online deposits are not available yet; for now, coordinate payment directly with the customer.">Sin porcentaje sobre cada reserva. El depósito en línea todavía no está habilitado; por ahora coordinas el cobro directamente con el cliente.</p></div><div class="pricing"><article class="price-card featured"><div class="price-icon">⚓</div><h3 data-es="Yates" data-en="Yachts">Yates</h3><div class="amount">$99 <span data-es="/ mes" data-en="/ month">/ mes</span></div><p data-es="Para flotas y operadores de charters que reciben clientes desde redes sociales." data-en="For fleets and charter operators receiving customers from social media.">Para flotas y operadores de charters que reciben clientes desde redes sociales.</p><ul><li data-es="Tienda pública con tus botes" data-en="Public storefront with your boats">Tienda pública con tus botes</li><li data-es="Calendario y bloqueos" data-en="Calendar and blocked times">Calendario y bloqueos</li><li data-es="Solicitudes y chat" data-en="Requests and chat">Solicitudes y chat</li><li data-es="Sin comisión por reserva" data-en="No booking commission">Sin comisión por reserva</li></ul><a class="btn primary" href="/flota/jhoelz" data-es="Ver tienda de ejemplo →" data-en="See example store →">Ver tienda de ejemplo →</a></article><article class="price-card"><div class="price-icon">🚿</div><h3>Carwash</h3><div class="amount">$49 <span data-es="/ mes" data-en="/ month">/ mes</span></div><p data-es="Para lavado móvil con horarios y zona de cobertura." data-en="For mobile carwash businesses with schedules and service areas.">Para lavado móvil con horarios y zona de cobertura.</p><ul><li data-es="Servicios y precios" data-en="Services and pricing">Servicios y precios</li><li data-es="Horarios disponibles" data-en="Available times">Horarios disponibles</li><li data-es="Solicitudes organizadas" data-en="Organized requests">Solicitudes organizadas</li></ul><a class="btn secondary" href="/carwash/gleamup" data-es="Ver ejemplo →" data-en="See example →">Ver ejemplo →</a></article><article class="price-card"><div class="price-icon">✨</div><h3 data-es="Limpieza" data-en="Cleaning">Limpieza</h3><div class="amount">$49 <span data-es="/ mes" data-en="/ month">/ mes</span></div><p data-es="Para limpieza residencial con tamaños, extras y cobertura." data-en="For home cleaning with sizes, add-ons, and service areas.">Para limpieza residencial con tamaños, extras y cobertura.</p><ul><li data-es="Paquetes y extras" data-en="Packages and add-ons">Paquetes y extras</li><li data-es="Calendario actualizado" data-en="Up-to-date calendar">Calendario actualizado</li><li data-es="Contacto directo" data-en="Direct customer contact">Contacto directo</li></ul><a class="btn secondary" href="/limpieza/gleamup" data-es="Ver ejemplo →" data-en="See example →">Ver ejemplo →</a></article></div></section>
 
-<div class="waterline"></div>
-
-<header class="hero" id="negocios" style="padding-top:5vw;">
-  <span class="eyebrow"><span class="dot"></span> <span data-es="¿Tienes un negocio?" data-en="Have a business?">¿Tienes un negocio?</span></span>
-  <h1 class="display" data-es="Tu propia página. Tu propia app." data-en="Your own page. Your own app.">Tu propia página. Tu propia app.</h1>
-  <p class="sub" data-es="Zenda te da tu propio link — zendaapp.app/tu-servicio/tu-nombre — con calendario en vivo y solicitudes de reserva (el pago de depósito en línea llega pronto). Todo lo administras tú mismo desde tu app: precios, horarios, fotos y disponibilidad, en cualquier momento." data-en="Zenda gives you your own link — zendaapp.app/your-service/your-name — with a live calendar and booking requests (online deposit payment is coming soon). You manage everything yourself from your app: prices, schedules, photos, and availability, anytime.">Zenda te da tu propio link — zendaapp.app/tu-servicio/tu-nombre — con calendario en vivo y solicitudes de reserva (el pago de depósito en línea llega pronto). Todo lo administras tú mismo desde tu app: precios, horarios, fotos y disponibilidad, en cualquier momento.</p>
-  <div class="hero-actions" id="demos" style="scroll-margin-top:84px;">
-    <a class="btn btn-primary" href="/flota/jhoelz" data-es="Ver tienda de yates" data-en="See yacht storefront">Ver tienda de yates</a>
-    <a class="btn btn-ghost" href="/carwash/gleamup" data-es="Ver tienda de carwash" data-en="See carwash storefront">Ver tienda de carwash</a>
-  </div>
-</header>
-
-<div class="waterline"></div>
-
-<section class="compare" id="comparar">
-  <div class="section-head">
-    <span class="eyebrow"><span class="dot"></span> <span data-es="La diferencia" data-en="The difference">La diferencia</span></span>
-    <h2 data-es="No es un mercado compartido. Es tu propia tienda." data-en="Not a shared marketplace. Your own storefront.">No es un mercado compartido. Es tu propia tienda.</h2>
-  </div>
-  <div class="compare-grid">
-    <div class="compare-card">
-      <div class="compare-tag bad" data-es="MERCADO COMPARTIDO" data-en="SHARED MARKETPLACE">MERCADO COMPARTIDO</div>
-      <p data-es="Metes tu negocio en un mar de cientos de proveedores ajenos y esperas que te vean." data-en="You drop your business into a sea of hundreds of other providers and hope someone notices.">Metes tu negocio en un mar de cientos de proveedores ajenos y esperas que te vean.</p>
-      <ul>
-        <li data-es="Compites por precio contra todos" data-en="You compete on price against everyone">Compites por precio contra todos</li>
-        <li data-es="El cliente es de la plataforma, no tuyo" data-en="The client belongs to the platform, not you">El cliente es de la plataforma, no tuyo</li>
-        <li data-es="Comisión por cada reserva" data-en="Commission on every booking">Comisión por cada reserva</li>
-      </ul>
-    </div>
-    <div class="compare-card good">
-      <div class="compare-tag good" data-es="TU TIENDA EN ZENDA" data-en="YOUR ZENDA STOREFRONT">TU TIENDA EN ZENDA</div>
-      <p data-es="Tienes tu propia tienda con tu propio link, y tú mandas a tu gente para allá." data-en="You have your own store with your own link, and you send your own people there.">Tienes tu propia tienda con tu propio link, y tú mandas a tu gente para allá.</p>
-      <ul>
-        <li data-es="zendaapp.app/tu-servicio/tu-nombre — solo tu negocio" data-en="zendaapp.app/your-service/your-name — only your business">zendaapp.app/tu-servicio/tu-nombre — solo tu negocio</li>
-        <li data-es="Tu tráfico, tu Instagram, tus clientes" data-en="Your traffic, your Instagram, your clients">Tu tráfico, tu Instagram, tus clientes</li>
-        <li data-es="Renta mensual fija, no comisión por reserva" data-en="Flat monthly rent, no per-booking commission">Renta mensual fija, no comisión por reserva</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<section class="app-explain">
-  <div>
-    <span class="eyebrow"><span class="dot"></span> <span data-es="Detrás de tu tienda" data-en="Behind your storefront">Detrás de tu tienda</span></span>
-    <h2 data-es="Zenda no es solo una página. Es tu app de gestión." data-en="Zenda isn't just a page. It's your management app.">Zenda no es solo una página. Es tu app de gestión.</h2>
-    <p class="sub" style="font-size:16px; margin-top:14px;" data-es="Zenda es tu app de gestión: tú editas precios, horarios y fotos cuando quieras, y cada reserva que llega por tu link aparece al instante — ahí confirmas, chateas y llevas tu calendario." data-en="Zenda is your management app: you edit prices, schedules, and photos whenever you want, and every booking made through your link appears instantly — that's where you confirm, chat, and manage your calendar.">Zenda es tu app de gestión: tú editas precios, horarios y fotos cuando quieras, y cada reserva que llega por tu link aparece al instante — ahí confirmas, chateas y llevas tu calendario.</p>
-    <div class="app-explain-list">
-      <div class="app-feature">
-        <div class="app-feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
-        <div><h4 data-es="Tú editas todo desde tu app" data-en="You edit everything from your app">Tú editas todo desde tu app</h4><p data-es="Precios, horarios, categorías, fotos y depósito — cambia lo que quieras, cuando quieras, sin pedirle nada a nadie." data-en="Prices, schedules, categories, photos, and deposit — change whatever you want, whenever you want, without asking anyone.">Precios, horarios, categorías, fotos y depósito — cambia lo que quieras, cuando quieras, sin pedirle nada a nadie.</p></div>
-      </div>
-      <div class="app-feature">
-        <div class="app-feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
-        <div><h4 data-es="Notificación al instante" data-en="Instant notification">Notificación al instante</h4><p data-es="Te avisa apenas alguien reserva desde tu link, sin refrescar nada." data-en="Alerts you the moment someone books through your link, no refreshing needed.">Te avisa apenas alguien reserva desde tu link, sin refrescar nada.</p></div>
-      </div>
-      <div class="app-feature">
-        <div class="app-feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-        <div><h4 data-es="Calendario y bloqueos" data-en="Calendar and blocked dates">Calendario y bloqueos</h4><p data-es="Marca días u horas fuera de servicio; tus clientes solo ven lo realmente disponible." data-en="Mark days or hours as unavailable; your clients only see what's truly available.">Marca días u horas fuera de servicio; tus clientes solo ven lo realmente disponible.</p></div>
-      </div>
-      <div class="app-feature">
-        <div class="app-feature-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5H3l1.9-3.8A8.38 8.38 0 1 1 21 11.5Z"/></svg></div>
-        <div><h4 data-es="Chat directo con el cliente" data-en="Direct chat with the client">Chat directo con el cliente</h4><p data-es="Coordina detalles de cada reserva sin salir de la app." data-en="Coordinate the details of every booking without leaving the app.">Coordina detalles de cada reserva sin salir de la app.</p></div>
-      </div>
-    </div>
-  </div>
-  <div class="app-mock">
-    <div class="app-mock-header">
-      <strong data-es="Mis Reservas" data-en="My Bookings">Mis Reservas</strong>
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="1.8"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
-    </div>
-    <div class="app-mock-body">
-      <div class="app-mock-card">
-        <div><div class="mock-title">Bombom</div><div class="mock-sub" data-es="18 de agosto · 9:00 a.m." data-en="August 18 · 9:00 AM">18 de agosto · 9:00 a.m.</div></div>
-        <span class="badge badge-pending" data-es="PENDIENTE" data-en="PENDING">PENDIENTE</span>
-      </div>
-      <div class="app-mock-card">
-        <div><div class="mock-title">Sea Breeze</div><div class="mock-sub" data-es="21 de agosto · 2:00 p.m." data-en="August 21 · 2:00 PM">21 de agosto · 2:00 p.m.</div></div>
-        <span class="badge badge-confirmed" data-es="CONFIRMADO" data-en="CONFIRMED">CONFIRMADO</span>
-      </div>
-    </div>
-    <div class="app-mock-navbar">
-      <div class="tab active">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="1.75"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
-        <span data-es="Reservas" data-en="Bookings">Reservas</span>
-      </div>
-      <div class="tab">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6B80" stroke-width="1.75"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span data-es="Horarios" data-en="Schedule">Horarios</span>
-      </div>
-      <div class="tab">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6B80" stroke-width="1.75"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8Z"/></svg>
-        <span data-es="Servicios" data-en="Services">Servicios</span>
-      </div>
-      <div class="tab">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6B6B80" stroke-width="1.75"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        <span data-es="Perfil" data-en="Profile">Perfil</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="verticals" id="verticales">
-  <div class="section-head">
-    <span class="eyebrow"><span class="dot"></span> <span data-es="Tu tienda, tu precio" data-en="Your store, your price">Tu tienda, tu precio</span></span>
-    <h2 data-es="Tu propia página, tu propia app." data-en="Your own page, your own app.">Tu propia página, tu propia app.</h2>
-    <p data-es="Cada servicio incluye tu link público y una app de proveedor donde controlas tus horarios, tus precios, tu calendario y tus reservas — todo se actualiza al instante en tu página." data-en="Every service includes your public link and a provider app where you control your schedule, your prices, your calendar, and your bookings — everything updates instantly on your page.">Cada servicio incluye tu link público y una app de proveedor donde controlas tus horarios, tus precios, tu calendario y tus reservas — todo se actualiza al instante en tu página.</p>
-  </div>
-  <div class="grid">
-    <div class="card" style="border-color:#00D4FF55;">
-      <div class="icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="2"><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="21"/><path d="M5 12a7 7 0 0 0 7 9 7 7 0 0 0 7-9"/><line x1="5" y1="12" x2="8" y2="12"/><line x1="16" y1="12" x2="19" y2="12"/></svg></div>
-      <h3 data-es="Yates" data-en="Yachts">Yates</h3>
-      <p data-es="Charters privados por hora. Gestiona tu calendario, bloquea fechas y publica tus botes desde tu app." data-en="Private hourly charters. Manage your calendar, block dates, and publish your boats from your app.">Charters privados por hora. Gestiona tu calendario, bloquea fechas y publica tus botes desde tu app.</p>
-      <span class="price" data-es="$99/mes por tu tienda" data-en="$99/mo for your store">$99/mes por tu tienda</span>
-      <a class="cta" style="display:inline-block; margin-top:16px;" href="/flota/jhoelz" data-es="Ver tienda de ejemplo →" data-en="See example store →">Ver tienda de ejemplo →</a>
-    </div>
-    <div class="card" style="border-color:#00D4FF55;">
-      <div class="icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><path d="M2 16V9a2 2 0 0 1 2-2h11l4 4v5"/><line x1="2" y1="16" x2="22" y2="16"/><circle cx="7" cy="17.5" r="1.6" fill="#00D4FF"/><circle cx="17" cy="17.5" r="1.6" fill="#00D4FF"/></svg></div>
-      <h3 data-es="Carwash" data-en="Carwash">Carwash</h3>
-      <p data-es="Lavado móvil a domicilio. Define tus horarios de trabajo y tu zona de cobertura desde tu app." data-en="Mobile carwash. Set your working hours and coverage area from your app.">Lavado móvil a domicilio. Define tus horarios de trabajo y tu zona de cobertura desde tu app.</p>
-      <span class="price" data-es="$49/mes por tu tienda" data-en="$49/mo for your store">$49/mes por tu tienda</span>
-      <a class="cta" style="display:inline-block; margin-top:16px;" href="/carwash/gleamup" data-es="Ver tienda de ejemplo →" data-en="See example store →">Ver tienda de ejemplo →</a>
-    </div>
-    <div class="card" style="border-color:#00D4FF55;">
-      <div class="icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFD166" stroke-width="1.6"><path d="M12 2l1.8 5.4L19 9l-5.2 1.6L12 16l-1.8-5.4L5 9l5.2-1.6L12 2Z"/></svg></div>
-      <h3 data-es="Limpieza" data-en="Cleaning">Limpieza</h3>
-      <p data-es="Limpieza residencial a domicilio. Define tus tamaños, add-ons y zona de cobertura desde tu app." data-en="Residential home cleaning. Set your sizes, add-ons, and coverage area from your app.">Limpieza residencial a domicilio. Define tus tamaños, add-ons y zona de cobertura desde tu app.</p>
-      <span class="price" data-es="$49/mes por tu tienda" data-en="$49/mo for your store">$49/mes por tu tienda</span>
-      <a class="cta" style="display:inline-block; margin-top:16px;" href="/limpieza/gleamup" data-es="Ver tienda de ejemplo →" data-en="See example store →">Ver tienda de ejemplo →</a>
-    </div>
-    <div class="card soon-card">
-      <div class="icon-wrap"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><path d="M3 13l1.5-5A2 2 0 0 1 6.4 7h11.2a2 2 0 0 1 1.9 1.4L21 13v5a1 1 0 0 1-1 1h-1a1 1 0 0 1-1-1v-1H6v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-5Z"/><circle cx="7.5" cy="16.5" r="1.3" fill="#00D4FF"/><circle cx="16.5" cy="16.5" r="1.3" fill="#00D4FF"/></svg></div>
-      <h3 data-es="Driver" data-en="Driver">Driver</h3>
-      <p data-es="Rides puerta a puerta en autos, vans y buses privados." data-en="Door-to-door rides in cars, vans, and private buses.">Rides puerta a puerta en autos, vans y buses privados.</p>
-      <span class="price soon-tag" data-es="Próximamente" data-en="Coming soon">Próximamente</span>
-    </div>
-  </div>
-</section>
-
-<section class="how" id="como-funciona">
-  <div class="how-steps">
-    <div class="step">
-      <span class="num">1</span>
-      <div><h4 data-es="Publica tu bote" data-en="List your boat">Publica tu bote</h4><p data-es="Fotos, precio por hora, marina y depósito — todo desde tu panel de proveedor." data-en="Photos, hourly rate, marina, and deposit — all from your provider dashboard.">Fotos, precio por hora, marina y depósito — todo desde tu panel de proveedor.</p></div>
-    </div>
-    <div class="step">
-      <span class="num">2</span>
-      <div><h4 data-es="Comparte tu link" data-en="Share your link">Comparte tu link</h4><p data-es="zendaapp.app/flota/tu-nombre en tu bio de Instagram, WhatsApp Status, donde sea." data-en="zendaapp.app/flota/your-name in your Instagram bio, WhatsApp Status, wherever.">zendaapp.app/flota/tu-nombre en tu bio de Instagram, WhatsApp Status, donde sea.</p></div>
-    </div>
-    <div class="step">
-      <span class="num">3</span>
-      <div><h4 data-es="El cliente reserva solo" data-en="The client books on their own">El cliente reserva solo</h4><p data-es="Calendario en vivo, precio calculado al instante, sin bajar ninguna app." data-en="Live calendar, price calculated instantly, no app download needed.">Calendario en vivo, precio calculado al instante, sin bajar ninguna app.</p></div>
-    </div>
-    <div class="step">
-      <span class="num">4</span>
-      <div><h4 data-es="Confirmas la reserva y zarpas" data-en="Confirm the request and set sail">Confirmas la reserva y zarpas</h4><p data-es="Recibes la solicitud de reserva al instante; el pago de depósito en línea llega pronto — mientras tanto, coordina el cobro como prefieras." data-en="You receive the booking request instantly; online deposit payment is coming soon — for now, coordinate payment however you prefer.">Recibes la solicitud de reserva al instante; el pago de depósito en línea llega pronto — mientras tanto, coordina el cobro como prefieras.</p></div>
-    </div>
-  </div>
-  <div class="phone-mock">
-    <div class="mock-row">
-      <div class="mock-left">
-        <div class="mock-dot"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="21"/><path d="M5 12a7 7 0 0 0 7 9 7 7 0 0 0 7-9"/></svg></div>
-        <div><div class="mock-title" data-es="zendaapp.app/flota/tu-nombre" data-en="zendaapp.app/flota/your-name">zendaapp.app/flota/tu-nombre</div><div class="mock-sub" data-es="Tu tienda, tus botes, tu link" data-en="Your store, your boats, your link">Tu tienda, tus botes, tu link</div></div>
-      </div>
-      <span class="mock-arrow">→</span>
-    </div>
-    <div class="mock-row">
-      <div class="mock-left">
-        <div class="mock-dot"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
-        <div><div class="mock-title" data-es="Calendario en vivo" data-en="Live calendar">Calendario en vivo</div><div class="mock-sub" data-es="Sin dobles reservas, sin confusiones" data-en="No double bookings, no confusion">Sin dobles reservas, sin confusiones</div></div>
-      </div>
-      <span class="mock-arrow">→</span>
-    </div>
-    <div class="mock-row">
-      <div class="mock-left">
-        <div class="mock-dot"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 6H9.5a3 3 0 0 0 0 6h5a3 3 0 0 1 0 6H7"/></svg></div>
-        <div><div class="mock-title" data-es="Solicitud de reserva al instante" data-en="Instant booking request">Solicitud de reserva al instante</div><div class="mock-sub" data-es="Pago de depósito en línea, próximamente" data-en="Online deposit payment, coming soon">Pago de depósito en línea, próximamente</div></div>
-      </div>
-      <span class="mock-arrow">→</span>
-    </div>
-  </div>
-</section>
-
-<footer>
-  <div class="logo">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="1.6"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-    ZENDA
-  </div>
-  <p data-es="© 2026 Zenda · Miami, FL" data-en="© 2026 Zenda · Miami, FL">© 2026 Zenda · Miami, FL</p>
-</footer>
-
-<script>
-  function setLang(lang){
-    document.querySelectorAll('[data-' + lang + ']').forEach(function(el){
-      el.textContent = el.getAttribute('data-' + lang);
-    });
-    document.getElementById('btn-es').classList.toggle('active', lang === 'es');
-    document.getElementById('btn-en').classList.toggle('active', lang === 'en');
-    document.documentElement.lang = lang;
-    localStorage.setItem('zenda-lang', lang);
-  }
-  (function(){
-    var saved = localStorage.getItem('zenda-lang');
-    if(saved === 'en') setLang('en');
-  })();
-
-  // ---- Menú móvil (hamburguesa) ----
-  document.addEventListener('DOMContentLoaded', function(){
-    var btnAbrir = document.getElementById('btn-menu-abrir');
-    var btnCerrar = document.getElementById('btn-menu-cerrar');
-    var overlay = document.getElementById('menu-overlay');
-    var menu = document.getElementById('mobile-menu');
-    if(!btnAbrir || !btnCerrar || !overlay || !menu) return;
-
-    function abrirMenu(){
-      menu.classList.add('open');
-      overlay.classList.add('open');
-      btnAbrir.setAttribute('aria-expanded', 'true');
-      document.body.classList.add('menu-open');
+    <section class="final wrap"><div class="final-box"><h2 data-es="Deja de organizar reservas entre mensajes sueltos." data-en="Stop organizing bookings across scattered messages.">Deja de organizar reservas entre mensajes sueltos.</h2><p data-es="Dale a tu negocio un lugar propio para recibir clientes." data-en="Give your business its own place to receive customers.">Dale a tu negocio un lugar propio para recibir clientes.</p><div class="actions"><a class="btn primary" href="#precios" data-es="Quiero mi tienda →" data-en="I want my storefront →">Quiero mi tienda →</a><a class="btn secondary" href="/boats" data-es="Buscar botes" data-en="Find boats">Buscar botes</a></div></div></section>
+  </main>
+  <footer><div class="footer-row wrap"><a class="logo" href="#top"><span class="logo-mark">Z</span> ZENDA</a><p>© 2026 Zenda · Miami, Florida</p><p data-es="Solicitudes de reserva · Pagos coordinados directamente" data-en="Booking requests · Payments coordinated directly">Solicitudes de reserva · Pagos coordinados directamente</p></div></footer>
+  <script>
+    const translations={};
+    function setLang(lang){document.querySelectorAll(`[data-${lang}]`).forEach(el=>{el.textContent=el.getAttribute(`data-${lang}`)});document.documentElement.lang=lang;document.getElementById('es').classList.toggle('active',lang==='es');document.getElementById('en').classList.toggle('active',lang==='en');localStorage.setItem('zenda-lang',lang)}
+    document.getElementById('es').onclick=()=>setLang('es');document.getElementById('en').onclick=()=>setLang('en');
+    const menu=document.querySelector('.menu'),panel=document.getElementById('mobile-panel');
+    function toggleMenu(forzarCerrado){
+      const abrir = forzarCerrado ? false : !panel.classList.contains('open');
+      panel.classList.toggle('open', abrir);
+      menu.textContent = abrir ? '×' : '☰';
+      menu.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+      document.body.classList.toggle('menu-open', abrir);
     }
-    function cerrarMenu(){
-      menu.classList.remove('open');
-      overlay.classList.remove('open');
-      btnAbrir.setAttribute('aria-expanded', 'false');
-      document.body.classList.remove('menu-open');
-    }
-
-    btnAbrir.addEventListener('click', abrirMenu);
-    btnCerrar.addEventListener('click', cerrarMenu);
-    overlay.addEventListener('click', cerrarMenu);
-    menu.querySelectorAll('a').forEach(function(a){
-      a.addEventListener('click', cerrarMenu);
+    menu.onclick=()=>toggleMenu();
+    panel.querySelectorAll('a').forEach(a=>a.onclick=()=>toggleMenu(true));
+    document.addEventListener('click',(e)=>{
+      if(panel.classList.contains('open') && !panel.contains(e.target) && e.target!==menu) toggleMenu(true);
     });
-    document.addEventListener('keydown', function(e){
-      if(e.key === 'Escape' && menu.classList.contains('open')) cerrarMenu();
+    document.addEventListener('keydown',(e)=>{
+      if(e.key==='Escape' && panel.classList.contains('open')) toggleMenu(true);
     });
-  });
-</script>
-
+    setLang(localStorage.getItem('zenda-lang')==='en'?'en':'es');
+  </script>
 </body>
 </html>
