@@ -40,7 +40,7 @@
 </head>
 <body>
   <nav>
-    <a class="logo" href="#top"><span class="logo-mark">Z</span> ZENDA</a>
+    <a class="logo" href="#top"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.6"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> ZENDA</a>
     <div class="nav-links"><a href="/boats" data-es="Buscar botes" data-en="Find boats">Buscar botes</a><a href="#negocios" data-es="Para negocios" data-en="For businesses">Para negocios</a><a href="#como" data-es="Cómo funciona" data-en="How it works">Cómo funciona</a><a href="#precios" data-es="Precios" data-en="Pricing">Precios</a></div>
     <div style="display:flex;gap:.7rem;align-items:center"><div class="lang"><button id="es" class="active">ES</button><button id="en">EN</button></div><button class="menu" aria-label="Abrir menú" aria-expanded="false" aria-controls="mobile-panel">☰</button></div>
     <div class="mobile-panel" id="mobile-panel"><a href="/boats" data-es="Buscar botes" data-en="Find boats">Buscar botes</a><a href="#negocios" data-es="Para negocios" data-en="For businesses">Para negocios</a><a href="#como" data-es="Cómo funciona" data-en="How it works">Cómo funciona</a><a href="#precios" data-es="Precios" data-en="Pricing">Precios</a></div>
@@ -64,7 +64,7 @@
 
     <section class="final wrap"><div class="final-box"><h2 data-es="Deja de organizar reservas entre mensajes sueltos." data-en="Stop organizing bookings across scattered messages.">Deja de organizar reservas entre mensajes sueltos.</h2><p data-es="Dale a tu negocio un lugar propio para recibir clientes." data-en="Give your business its own place to receive customers.">Dale a tu negocio un lugar propio para recibir clientes.</p><div class="actions"><a class="btn primary" href="#precios" data-es="Quiero mi tienda →" data-en="I want my storefront →">Quiero mi tienda →</a><a class="btn secondary" href="/boats" data-es="Buscar botes" data-en="Find boats">Buscar botes</a></div></div></section>
   </main>
-  <footer><div class="footer-row wrap"><a class="logo" href="#top"><span class="logo-mark">Z</span> ZENDA</a><p>© 2026 Zenda · Miami, Florida</p><p data-es="Solicitudes de reserva · Pagos coordinados directamente" data-en="Booking requests · Payments coordinated directly">Solicitudes de reserva · Pagos coordinados directamente</p></div></footer>
+  <footer><div class="footer-row wrap"><a class="logo" href="#top"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22d3ee" stroke-width="1.6"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg> ZENDA</a><p>© 2026 Zenda · Miami, Florida</p><p data-es="Solicitudes de reserva · Pagos coordinados directamente" data-en="Booking requests · Payments coordinated directly">Solicitudes de reserva · Pagos coordinados directamente</p></div></footer>
   <script>
     const translations={};
     function setLang(lang){document.querySelectorAll(`[data-${lang}]`).forEach(el=>{el.textContent=el.getAttribute(`data-${lang}`)});document.documentElement.lang=lang;document.getElementById('es').classList.toggle('active',lang==='es');document.getElementById('en').classList.toggle('active',lang==='en');localStorage.setItem('zenda-lang',lang)}
