@@ -6,14 +6,14 @@
 <title>Zenda — Tu propia tienda de yates</title>
 <meta property="og:type" content="website">
 <meta property="og:title" content="Zenda — Tu propia página, tu propia app">
-<meta property="og:description" content="Tu propio link con calendario en vivo, reservas y depósito. Tú manejas precios, horarios y disponibilidad desde tu app.">
+<meta property="og:description" content="Tu propio link con calendario en vivo y solicitudes de reserva — el pago de depósito en línea llega pronto. Tú manejas precios, horarios y disponibilidad desde tu app.">
 <meta property="og:image" content="https://zendaapp.app/og-default.jpg">
 <meta property="og:url" content="https://zendaapp.app">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Zenda — Tu propia página, tu propia app">
-<meta name="twitter:description" content="Tu propio link con calendario en vivo, reservas y depósito. Tú manejas precios, horarios y disponibilidad desde tu app.">
+<meta name="twitter:description" content="Tu propio link con calendario en vivo y solicitudes de reserva — el pago de depósito en línea llega pronto. Tú manejas precios, horarios y disponibilidad desde tu app.">
 <meta name="twitter:image" content="https://zendaapp.app/og-default.jpg">
-<meta name="description" content="Zenda te da tu propio link con calendario en vivo, reservas y depósito — tú manejas todo desde tu app.">
+<meta name="description" content="Zenda te da tu propio link con calendario en vivo y solicitudes de reserva — depósito en línea próximamente. Tú manejas todo desde tu app.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
@@ -53,21 +53,26 @@
   nav{
     position:sticky; top:0; z-index:50;
     display:flex; align-items:center; justify-content:space-between;
-    padding:22px 6vw;
+    padding:16px 6vw;
+    padding-top:calc(16px + env(safe-area-inset-top, 0px));
     background:#0A0C10CC;
     backdrop-filter:blur(10px);
     border-bottom:1px solid var(--line);
+    max-width:100%;
   }
-  .logo{display:flex; align-items:center; gap:10px; font-weight:800; font-size:20px;}
+  .logo{display:flex; align-items:center; gap:10px; font-weight:800; font-size:19px; flex-shrink:0;}
   .logo svg{flex-shrink:0;}
   nav a.cta{
     background:var(--cyan); color:#04121A; font-weight:700; font-size:14px;
-    padding:10px 20px; border-radius:100px; text-decoration:none;
+    padding:10px 20px; border-radius:100px; text-decoration:none; white-space:nowrap;
   }
-  .nav-right{display:flex; align-items:center; gap:14px;}
+  .nav-links{display:flex; align-items:center; gap:26px;}
+  .nav-links a{color:var(--muted); font-size:14px; font-weight:600; text-decoration:none; white-space:nowrap;}
+  .nav-links a:hover{color:var(--text);}
+  .nav-right{display:flex; align-items:center; gap:14px; flex-shrink:0;}
   .lang-toggle{
     display:flex; align-items:center; background:var(--surface);
-    border:1px solid var(--line); border-radius:100px; padding:4px;
+    border:1px solid var(--line); border-radius:100px; padding:4px; flex-shrink:0;
   }
   .lang-toggle button{
     border:none; background:transparent; color:var(--muted);
@@ -75,6 +80,56 @@
     padding:6px 12px; border-radius:100px; cursor:pointer;
   }
   .lang-toggle button.active{background:var(--cyan); color:#04121A;}
+
+  .hamburger-btn{
+    display:none; align-items:center; justify-content:center;
+    width:38px; height:38px; border-radius:10px; border:1px solid var(--line);
+    background:var(--surface); flex-shrink:0; cursor:pointer; padding:0;
+  }
+
+  .mobile-menu-overlay{
+    display:none; position:fixed; inset:0; top:0; z-index:49;
+    background:#000000aa;
+  }
+  .mobile-menu-overlay.open{display:block;}
+  .mobile-menu{
+    position:fixed; top:0; right:0; z-index:51; height:100%; width:min(84vw, 340px);
+    background:#0D1016; border-left:1px solid var(--line);
+    padding:20px 22px; padding-top:calc(20px + env(safe-area-inset-top, 0px));
+    padding-bottom:calc(24px + env(safe-area-inset-bottom, 0px));
+    transform:translateX(100%); transition:transform .25s ease;
+    display:flex; flex-direction:column; align-items:stretch; justify-content:flex-start;
+    overflow-y:auto;
+  }
+  .mobile-menu.open{transform:translateX(0);}
+  .mobile-menu-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:22px;}
+  .mobile-menu-close{
+    width:34px; height:34px; border-radius:50%; border:1px solid var(--line);
+    background:var(--surface); color:var(--text); font-size:16px; cursor:pointer;
+  }
+  .mobile-menu a.mobile-link{
+    display:block; width:100%; box-sizing:border-box;
+    color:var(--text); font-size:16px; font-weight:600; text-decoration:none;
+    padding:14px 4px; border-bottom:1px solid var(--line);
+  }
+  .mobile-menu a.cta{
+    display:block; width:100%; box-sizing:border-box;
+    text-align:center; margin-top:20px; padding:15px; font-size:15px;
+  }
+
+  body.menu-open{overflow:hidden;}
+
+  @media (max-width:900px){
+    .nav-links{display:none;}
+    .nav-right .cta{display:none;}
+    .hamburger-btn{display:flex;}
+  }
+  @media (min-width:901px){
+    .hamburger-btn{display:none;}
+    .mobile-menu, .mobile-menu-overlay{display:none !important;}
+  }
+
+  header.hero, section.verticals, section.how, section.compare, section.app-explain{scroll-margin-top:84px;}
 
   header.hero{
     position:relative; z-index:1;
@@ -288,15 +343,44 @@
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="1.6"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
     ZENDA
   </div>
+
+  <div class="nav-links">
+    <a href="/boats" data-es="Buscar botes" data-en="Find boats">Buscar botes</a>
+    <a href="#negocios" data-es="Para negocios" data-en="For businesses">Para negocios</a>
+    <a href="#como-funciona" data-es="Cómo funciona" data-en="How it works">Cómo funciona</a>
+    <a href="#verticales" data-es="Planes y precios" data-en="Plans & pricing">Planes y precios</a>
+    <a href="#demos" data-es="Tiendas de ejemplo" data-en="Demo stores">Tiendas de ejemplo</a>
+  </div>
+
   <div class="nav-right">
-    <a href="/boats" style="color:#00D4FF; font-weight:700; font-size:12px; text-decoration:none; background:#00D4FF1a; border:1px solid #00D4FF44; padding:7px 14px; border-radius:100px; margin-left:10px;" data-es="Botes" data-en="Boats">Botes</a>
     <div class="lang-toggle">
       <button id="btn-es" class="active" onclick="setLang('es')">ES</button>
       <button id="btn-en" onclick="setLang('en')">EN</button>
     </div>
-    <a class="cta" href="#verticales" data-es="Ver servicios" data-en="See services">Ver servicios</a>
+    <a class="cta" href="#verticales" data-es="Crear mi tienda" data-en="Create my store">Crear mi tienda</a>
+    <button class="hamburger-btn" id="btn-menu-abrir" aria-label="Abrir menú" aria-expanded="false" aria-controls="mobile-menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
   </div>
 </nav>
+
+<div class="mobile-menu-overlay" id="menu-overlay"></div>
+<nav class="mobile-menu" id="mobile-menu" aria-label="Menú principal">
+  <div class="mobile-menu-header">
+    <div class="logo" style="font-size:17px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="1.6"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      ZENDA
+    </div>
+    <button class="mobile-menu-close" id="btn-menu-cerrar" aria-label="Cerrar menú">✕</button>
+  </div>
+  <a class="mobile-link" href="/boats" data-es="Buscar botes" data-en="Find boats">Buscar botes</a>
+  <a class="mobile-link" href="#negocios" data-es="Para negocios" data-en="For businesses">Para negocios</a>
+  <a class="mobile-link" href="#como-funciona" data-es="Cómo funciona" data-en="How it works">Cómo funciona</a>
+  <a class="mobile-link" href="#verticales" data-es="Planes y precios" data-en="Plans & pricing">Planes y precios</a>
+  <a class="mobile-link" href="#demos" data-es="Tiendas de ejemplo" data-en="Demo stores">Tiendas de ejemplo</a>
+  <a class="cta" href="#verticales" data-es="Crear mi tienda" data-en="Create my store">Crear mi tienda</a>
+</nav>
+
 
 <header class="hero" style="text-align:center; padding-top:7vw; padding-bottom:5vw;">
   <span class="eyebrow" style="margin-left:auto; margin-right:auto;"><span class="dot"></span> <span data-es="Miami · Reserva directo" data-en="Miami · Book direct">Miami · Reserva directo</span></span>
@@ -309,11 +393,11 @@
 
 <div class="waterline"></div>
 
-<header class="hero" style="padding-top:5vw;">
+<header class="hero" id="negocios" style="padding-top:5vw;">
   <span class="eyebrow"><span class="dot"></span> <span data-es="¿Tienes un negocio?" data-en="Have a business?">¿Tienes un negocio?</span></span>
   <h1 class="display" data-es="Tu propia página. Tu propia app." data-en="Your own page. Your own app.">Tu propia página. Tu propia app.</h1>
-  <p class="sub" data-es="Zenda te da tu propio link — zendaapp.app/tu-servicio/tu-nombre — con calendario en vivo, reservas y depósito. Todo lo administras tú mismo desde tu app: precios, horarios, fotos y disponibilidad, en cualquier momento." data-en="Zenda gives you your own link — zendaapp.app/your-service/your-name — with a live calendar, bookings, and deposits. You manage everything yourself from your app: prices, schedules, photos, and availability, anytime.">Zenda te da tu propio link — zendaapp.app/tu-servicio/tu-nombre — con calendario en vivo, reservas y depósito. Todo lo administras tú mismo desde tu app: precios, horarios, fotos y disponibilidad, en cualquier momento.</p>
-  <div class="hero-actions">
+  <p class="sub" data-es="Zenda te da tu propio link — zendaapp.app/tu-servicio/tu-nombre — con calendario en vivo y solicitudes de reserva (el pago de depósito en línea llega pronto). Todo lo administras tú mismo desde tu app: precios, horarios, fotos y disponibilidad, en cualquier momento." data-en="Zenda gives you your own link — zendaapp.app/your-service/your-name — with a live calendar and booking requests (online deposit payment is coming soon). You manage everything yourself from your app: prices, schedules, photos, and availability, anytime.">Zenda te da tu propio link — zendaapp.app/tu-servicio/tu-nombre — con calendario en vivo y solicitudes de reserva (el pago de depósito en línea llega pronto). Todo lo administras tú mismo desde tu app: precios, horarios, fotos y disponibilidad, en cualquier momento.</p>
+  <div class="hero-actions" id="demos" style="scroll-margin-top:84px;">
     <a class="btn btn-primary" href="/flota/jhoelz" data-es="Ver tienda de yates" data-en="See yacht storefront">Ver tienda de yates</a>
     <a class="btn btn-ghost" href="/carwash/gleamup" data-es="Ver tienda de carwash" data-en="See carwash storefront">Ver tienda de carwash</a>
   </div>
@@ -445,7 +529,7 @@
   </div>
 </section>
 
-<section class="how">
+<section class="how" id="como-funciona">
   <div class="how-steps">
     <div class="step">
       <span class="num">1</span>
@@ -461,7 +545,7 @@
     </div>
     <div class="step">
       <span class="num">4</span>
-      <div><h4 data-es="Cobras tu depósito y zarpas" data-en="Collect your deposit and set sail">Cobras tu depósito y zarpas</h4><p data-es="Tú pones tu link de pago; el resto se coordina como prefieras." data-en="You set your own payment link; the rest is coordinated however you prefer.">Tú pones tu link de pago; el resto se coordina como prefieras.</p></div>
+      <div><h4 data-es="Confirmas la reserva y zarpas" data-en="Confirm the request and set sail">Confirmas la reserva y zarpas</h4><p data-es="Recibes la solicitud de reserva al instante; el pago de depósito en línea llega pronto — mientras tanto, coordina el cobro como prefieras." data-en="You receive the booking request instantly; online deposit payment is coming soon — for now, coordinate payment however you prefer.">Recibes la solicitud de reserva al instante; el pago de depósito en línea llega pronto — mientras tanto, coordina el cobro como prefieras.</p></div>
     </div>
   </div>
   <div class="phone-mock">
@@ -482,7 +566,7 @@
     <div class="mock-row">
       <div class="mock-left">
         <div class="mock-dot"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00D4FF" stroke-width="2"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 6H9.5a3 3 0 0 0 0 6h5a3 3 0 0 1 0 6H7"/></svg></div>
-        <div><div class="mock-title" data-es="Depósito con tu propio link" data-en="Deposit with your own link">Depósito con tu propio link</div><div class="mock-sub" data-es="Tú lo cobras, no Zenda" data-en="You collect it, not Zenda">Tú lo cobras, no Zenda</div></div>
+        <div><div class="mock-title" data-es="Solicitud de reserva al instante" data-en="Instant booking request">Solicitud de reserva al instante</div><div class="mock-sub" data-es="Pago de depósito en línea, próximamente" data-en="Online deposit payment, coming soon">Pago de depósito en línea, próximamente</div></div>
       </div>
       <span class="mock-arrow">→</span>
     </div>
@@ -511,6 +595,38 @@
     var saved = localStorage.getItem('zenda-lang');
     if(saved === 'en') setLang('en');
   })();
+
+  // ---- Menú móvil (hamburguesa) ----
+  document.addEventListener('DOMContentLoaded', function(){
+    var btnAbrir = document.getElementById('btn-menu-abrir');
+    var btnCerrar = document.getElementById('btn-menu-cerrar');
+    var overlay = document.getElementById('menu-overlay');
+    var menu = document.getElementById('mobile-menu');
+    if(!btnAbrir || !btnCerrar || !overlay || !menu) return;
+
+    function abrirMenu(){
+      menu.classList.add('open');
+      overlay.classList.add('open');
+      btnAbrir.setAttribute('aria-expanded', 'true');
+      document.body.classList.add('menu-open');
+    }
+    function cerrarMenu(){
+      menu.classList.remove('open');
+      overlay.classList.remove('open');
+      btnAbrir.setAttribute('aria-expanded', 'false');
+      document.body.classList.remove('menu-open');
+    }
+
+    btnAbrir.addEventListener('click', abrirMenu);
+    btnCerrar.addEventListener('click', cerrarMenu);
+    overlay.addEventListener('click', cerrarMenu);
+    menu.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', cerrarMenu);
+    });
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Escape' && menu.classList.contains('open')) cerrarMenu();
+    });
+  });
 </script>
 
 </body>
