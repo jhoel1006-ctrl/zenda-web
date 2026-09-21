@@ -45,6 +45,30 @@
   }
   .company-badge img{width:100%; height:100%; object-fit:cover;}
 
+  .gallery-arrow{
+    position:absolute; top:50%; transform:translateY(-50%); z-index:3;
+    width:40px; height:40px; border-radius:50%; border:none; cursor:pointer;
+    background:#000000aa; color:#fff; display:flex; align-items:center; justify-content:center;
+    backdrop-filter:blur(4px);
+  }
+  .gallery-arrow:hover{background:#000000cc;}
+  .gallery-arrow.prev{left:12px;}
+  .gallery-arrow.next{right:12px;}
+  .gallery-counter{
+    position:absolute; top:14px; right:14px; z-index:3;
+    background:#000000aa; color:#fff; font-size:12px; font-weight:700;
+    padding:5px 11px; border-radius:100px;
+  }
+  .gallery-dots{
+    position:absolute; bottom:14px; left:0; right:0; z-index:3;
+    display:flex; justify-content:center; gap:6px;
+  }
+  .gallery-dots .dot{
+    width:6px; height:6px; border-radius:50%; background:#ffffff66;
+    border:none; padding:0; cursor:pointer; transition:background .15s ease, width .15s ease;
+  }
+  .gallery-dots .dot.active{background:#fff; width:16px; border-radius:3px;}
+
   .content{padding-top:32px; display:grid; grid-template-columns:1.4fr 1fr; gap:50px; align-items:start;}
   .title-row h1{font-size:clamp(26px,3.6vw,38px); font-weight:700;}
   .brand-line{color:var(--muted); font-size:15px; margin-top:6px;}
@@ -199,6 +223,16 @@
   <div class="gallery">
     <div class="gallery-scroll" id="gallery-scroll"></div>
     <div class="company-badge" id="company-badge" style="display:none;"><img id="company-badge-img"></div>
+
+    <button class="gallery-arrow prev" id="gallery-prev" style="display:none;" aria-label="Foto anterior" data-es-aria="Foto anterior" data-en-aria="Previous photo">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="gallery-arrow next" id="gallery-next" style="display:none;" aria-label="Foto siguiente" data-es-aria="Foto siguiente" data-en-aria="Next photo">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+
+    <div class="gallery-counter" id="gallery-counter" style="display:none;">1 / 1</div>
+    <div class="gallery-dots" id="gallery-dots" style="display:none;"></div>
   </div>
 
   <div class="content">
@@ -376,10 +410,73 @@
     document.getElementById('btn-reservar-text').textContent = t('reservarAhora');
   }
 
+  // ---- Galería con flechas, contador y puntos ----
+  function inicializarGaleria(totalFotos){
+    const scroll = document.getElementById('gallery-scroll');
+    const btnPrev = document.getElementById('gallery-prev');
+    const btnNext = document.getElementById('gallery-next');
+    const contador = document.getElementById('gallery-counter');
+    const dotsBox = document.getElementById('gallery-dots');
+
+    if(totalFotos <= 1){
+      btnPrev.style.display = 'none';
+      btnNext.style.display = 'none';
+      contador.style.display = 'none';
+      dotsBox.style.display = 'none';
+      return;
+    }
+
+    btnPrev.style.display = 'flex';
+    btnNext.style.display = 'flex';
+    contador.style.display = 'block';
+    dotsBox.style.display = 'flex';
+
+    dotsBox.innerHTML = Array.from({length: totalFotos}).map(function(_, i){
+      return `<button class="dot${i===0 ? ' active' : ''}" data-idx="${i}" aria-label="${i+1}"></button>`;
+    }).join('');
+
+    let indiceActual = 0;
+
+    function irAFoto(idx){
+      indiceActual = Math.max(0, Math.min(totalFotos - 1, idx));
+      scroll.scrollTo({ left: scroll.clientWidth * indiceActual, behavior: 'smooth' });
+    }
+
+    function actualizarUI(idx){
+      indiceActual = idx;
+      contador.textContent = (idx + 1) + ' / ' + totalFotos;
+      dotsBox.querySelectorAll('.dot').forEach(function(d, i){
+        d.classList.toggle('active', i === idx);
+      });
+    }
+
+    btnPrev.onclick = function(){ irAFoto(indiceActual - 1); };
+    btnNext.onclick = function(){ irAFoto(indiceActual + 1); };
+    dotsBox.querySelectorAll('.dot').forEach(function(dot){
+      dot.onclick = function(){ irAFoto(parseInt(dot.dataset.idx)); };
+    });
+
+    // Detecta el deslizado con el dedo (o el scroll normal) y sincroniza
+    // contador/puntos con la foto que realmente quedó visible.
+    let scrollTimeout;
+    scroll.addEventListener('scroll', function(){
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(function(){
+        const idx = Math.round(scroll.scrollLeft / scroll.clientWidth);
+        actualizarUI(Math.max(0, Math.min(totalFotos - 1, idx)));
+      }, 80);
+    });
+
+    actualizarUI(0);
+  }
+
   function setLang(lang){
     currentLang = lang;
     localStorage.setItem('zenda_lang', lang);
     aplicarTraduccionesEstaticas();
+    document.querySelectorAll('[data-es-aria]').forEach(function(el){
+      el.setAttribute('aria-label', el.getAttribute('data-' + lang + '-aria'));
+    });
     // Si ya cargó el yate, volvemos a pintar los valores que dependen del idioma
     if(window.ZENDA_BOAT) renderizarDatosYate();
     // Si el modal de reserva está abierto, lo regeneramos en el nuevo idioma
@@ -466,6 +563,7 @@
       const gallery = document.getElementById('gallery-scroll');
       if(a.fotos && a.fotos.length){
         gallery.innerHTML = a.fotos.map(f => `<img src="${f}" alt="${nombreBote}">`).join('');
+        inicializarGaleria(a.fotos.length);
       } else {
         gallery.innerHTML = `<div class="gallery-ph"><svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="1.6"><circle cx="12" cy="5" r="2"/><line x1="12" y1="7" x2="12" y2="21"/><path d="M5 12a7 7 0 0 0 7 9 7 7 0 0 0 7-9"/></svg></div>`;
       }
@@ -486,8 +584,9 @@
       // El teléfono del proveedor se busca en paralelo, sin bloquear la vista;
       // el botón de WhatsApp se activa apenas llegue la respuesta.
       const btnWa = document.getElementById('btn-wa');
-      fetch(`/.netlify/functions/get-provider-contact?provider_id=${b.provider_id}`).then(r => r.json()).then(data => {
-        window.ZENDA_CONDUCTOR_PHONE = data.phone || null;
+      api(`conductors?id=eq.${b.provider_id}&select=phone,full_name`).then(conductores => {
+        const conductorPhone = conductores && conductores[0] && conductores[0].phone;
+        window.ZENDA_CONDUCTOR_PHONE = conductorPhone || null;
         actualizarBotonWhatsapp();
       }).catch(() => {
         window.ZENDA_CONDUCTOR_PHONE = null;
@@ -769,15 +868,19 @@
       if(!res.ok) throw new Error('No se pudo crear la reserva');
 
       try{
-        await fetch('/.netlify/functions/notify-provider', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            provider_id: window.ZENDA_BOAT.provider_id,
-            title: 'Nueva Reserva de Yate (Web)',
-            body: `${window.ZENDA_NOMBRE_BOTE} · ${bookingState.horas} horas · $${total.toFixed(2)} · ${bookingState.nombre}`
-          })
-        });
+        const conductores = await api(`conductors?id=eq.${window.ZENDA_BOAT.provider_id}&select=push_token`);
+        const pushToken = conductores && conductores[0] && conductores[0].push_token;
+        if(pushToken){
+          await fetch('https://exp.host/--/api/v2/push/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+              to: pushToken,
+              title: 'Nueva Reserva de Yate (Web)',
+              body: `${window.ZENDA_NOMBRE_BOTE} · ${bookingState.horas} horas · $${total.toFixed(2)} · ${bookingState.nombre}`
+            })
+          });
+        }
       }catch(e){}
 
       mostrarConfirmacion(total);
