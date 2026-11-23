@@ -824,7 +824,7 @@
     }
   }
 
-  async function confirmarReservaWeb(){
+  async function buscarOCrearCliente(companyId, nombre, telefono, email){     try{       const clientes = await api(`clients?company_id=eq.${companyId}&select=id,email,phone`);       const emailNorm = (email || '').trim().toLowerCase();       const telDigits = (telefono || '').replace(/[^0-9]/g, '');       const matchEmail = emailNorm ? clientes.find(c => (c.email || '').trim().toLowerCase() === emailNorm) : null;       const matchPhone = telDigits ? clientes.find(c => (c.phone || '').replace(/[^0-9]/g, '') === telDigits) : null;        if(matchEmail) return matchEmail.id;       if(matchPhone) return matchPhone.id;        const nuevo = await fetch(`${SUPABASE_URL}/rest/v1/clients`, {         method: 'POST',         headers: {           'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`,           'Content-Type': 'application/json', 'Prefer': 'return=representation'         },         body: JSON.stringify({ company_id: companyId, full_name: nombre, phone: telefono, email: email })       });       const data = await nuevo.json();       return (data && data[0]) ? data[0].id : null;     }catch(e){ return null; }   }    async function confirmarReservaWeb(){
     bookingState.nombre = document.getElementById('input-nombre').value.trim();
     bookingState.telefono = document.getElementById('input-telefono').value.trim();
     bookingState.email = document.getElementById('input-email').value.trim();
