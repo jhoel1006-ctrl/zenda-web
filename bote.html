@@ -845,7 +845,8 @@
       const fechaCompleta = new Date(bookingState.fecha);
       fechaCompleta.setHours(bookingState.horario === 'manana' ? 9 : 14, 0, 0, 0);
       const total = calcularPrecioWeb();
-
+      const companyId = window.ZENDA_BOAT.company_id || null;
+      const clientId = companyId ? await buscarOCrearCliente(companyId, bookingState.nombre, bookingState.telefono, bookingState.email) : null;
       const res = await fetch(`${SUPABASE_URL}/rest/v1/service_bookings`, {
         method: 'POST',
         headers: {
@@ -854,7 +855,7 @@
         },
         body: JSON.stringify({
           service_id: window.ZENDA_BOAT.id,
-          client_id: null,
+          client_id: clientId,
           fecha_hora: fechaCompleta.toISOString(),
           status: 'Pendiente',
           direccion_o_marina: window.ZENDA_ATTR.marina || '',
