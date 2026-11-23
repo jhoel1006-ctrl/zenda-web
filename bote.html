@@ -835,7 +835,7 @@
     if(!bookingState.horario){ errBox.innerHTML = `<div class="form-error">${t('errElegirHorario')}</div>`; return; }
     if(!bookingState.nombre){ errBox.innerHTML = `<div class="form-error">${t('errNombre')}</div>`; return; }
     if(!bookingState.telefono){ errBox.innerHTML = `<div class="form-error">${t('errTelefono')}</div>`; return; }
-    if(!bookingState.email || !bookingState.email.includes('@')){ errBox.innerHTML = `<div class="form-error">${t('errCorreo')}</div>`; return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(bookingState.email || '')){ errBox.innerHTML = `<div class="form-error">${t('errCorreo')}</div>`; return; }
 
     const btn = document.getElementById('btn-confirmar');
     btn.disabled = true;
