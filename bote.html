@@ -776,7 +776,7 @@
     const box = document.getElementById('modal-box');
     box.innerHTML = `
       <div class="modal-header">
-        <h2>${t('modalTituloReservar')}</h2>
+        <h2>${t('modalTituloReservar')}<span style="display:block; font-size:14px; font-weight:600; color:var(--cyan); margin-top:2px;">${window.ZENDA_NOMBRE_BOTE || ''}</span></h2>
         <button class="modal-close" onclick="cerrarModal()">✕</button>
       </div>
       <div class="field-label">${currentLang === 'es' ? 'Fecha' : 'Date'}</div>
